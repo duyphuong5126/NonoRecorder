@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">NonoRecorder</string>
+    <string name="accessibility_service_description">Accessibility setting must be enabled</string>
+
+    <string name="waiting_for_call">Stand by - Waiting for a call</string>
+    <string name="recording_call">Your call is being recorded…</string>
+
+    <string name="start_call_detecting_service">Start detecting calls</string>
+
+    <string name="permission_required_title">Permission required</string>
+
+    <string name="accessibility_permission_required_message">This app requires Appears on Top permission to perform audio recording.\nPlease consider enabling it.</string>
+    <string name="record_audio_permission_required_message">This app requires audio recording permission.\nDo you want to enable it?</string>
+
+    <string name="action_ok">OK</string>
+    <string name="action_yes">Yes</string>
+    <string name="action_no">No</string>
+</resources>
