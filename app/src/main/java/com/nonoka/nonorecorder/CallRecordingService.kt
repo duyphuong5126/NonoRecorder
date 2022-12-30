@@ -1,7 +1,7 @@
 package com.nonoka.nonorecorder
 
+import android.Manifest
 import android.accessibilityservice.AccessibilityService
-import android.accessibilityservice.AccessibilityServiceInfo
 import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
@@ -10,9 +10,12 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.media.AudioDeviceInfo
+import android.media.AudioFormat
 import android.media.AudioManager
+import android.media.AudioRecord
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.media.MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED
@@ -22,9 +25,11 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import android.widget.FrameLayout
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.nonoka.nonorecorder.constant.BroadcastData.actionFinishedRecording
+import com.nonoka.nonorecorder.constant.BroadcastData.extraDirectory
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -33,9 +38,9 @@ import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-
 
 class CallRecordingService : AccessibilityService() {
     private var windowManager: WindowManager? = null
@@ -115,6 +120,17 @@ class CallRecordingService : AccessibilityService() {
 
         params.gravity = Gravity.RIGHT or Gravity.TOP
         windowManager.addView(overlayLayout, params)
+
+        val notification: Notification =
+            NotificationCompat.Builder(this, createNotificationChannel())
+                .setContentTitle(getText(R.string.waiting_for_call))
+                .setSmallIcon(R.drawable.ic_standby_24dp)
+                .setContentIntent(pendingIntent)
+                .setTicker(getText(R.string.waiting_for_call))
+                .setOnlyAlertOnce(true)
+                .build()
+
+        startForeground(RECORDING_NOTIFICATION_ID, notification)
 
         /*  back = new ImageView(this);
         home = new ImageView(this);
@@ -206,20 +222,6 @@ class CallRecordingService : AccessibilityService() {
             }
         });
 */
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val notification: Notification =
-            NotificationCompat.Builder(this, createNotificationChannel())
-                .setContentTitle(getText(R.string.waiting_for_call))
-                .setSmallIcon(R.drawable.ic_standby_24dp)
-                .setContentIntent(pendingIntent)
-                .setTicker(getText(R.string.waiting_for_call))
-                .setOnlyAlertOnce(true)
-                .build()
-
-        startForeground(RECORDING_NOTIFICATION_ID, notification)
-        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -320,7 +322,7 @@ class CallRecordingService : AccessibilityService() {
     override fun onServiceConnected() {
         Timber.d("onServiceConnected")
 
-        //==============================Record Audio while Call received===============//
+        /*//==============================Record Audio while Call received===============//
         val windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         val layout = FrameLayout(this)
         val params = WindowManager.LayoutParams(
@@ -337,7 +339,7 @@ class CallRecordingService : AccessibilityService() {
         params.gravity = Gravity.TOP
         windowManager.addView(layout, params)
         layout.setOnTouchListener { _, _ -> //You can either get the information here or on onAccessibilityEvent
-            //Timber.d("Window view touched........:")
+            Timber.d("Window view touched........:")
             true
         }
 
@@ -354,7 +356,7 @@ class CallRecordingService : AccessibilityService() {
             startCallRecording()
         } catch (e: Exception) {
             e.printStackTrace()
-        }
+        }*/
     }
 
     private fun startPlaying() {
@@ -375,12 +377,12 @@ class CallRecordingService : AccessibilityService() {
 
     private fun startCallRecording() {
         @Suppress("DEPRECATION")
-        initOutputFile()
         recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             MediaRecorder(this)
         } else {
             MediaRecorder()
         }
+        initOutputFile()
         // This must be needed source
         recorder?.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
         recorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -423,6 +425,13 @@ class CallRecordingService : AccessibilityService() {
         recorder?.release()
         recorder = null
         Timber.d("recording stopped")
+
+        ioScope.launch(Dispatchers.IO) {
+            delay(5000)
+            sendBroadcast(Intent(actionFinishedRecording).apply {
+                putExtra(extraDirectory, file.parentFile?.absolutePath)
+            })
+        }
 
         NotificationCompat.Builder(this, createNotificationChannel())
             .setContentTitle(getText(R.string.waiting_for_call))
@@ -597,7 +606,7 @@ class CallRecordingService : AccessibilityService() {
     // Audio mode listening area - End
 
     private fun initOutputFile() {
-        val recordDir = File(filesDir.path, "recorded")
+        val recordDir = File(filesDir.absolutePath, "recorded")
         if (!recordDir.exists()) {
             recordDir.mkdir()
         }
