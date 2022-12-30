@@ -231,55 +231,57 @@ fun HomePage(
                 }
 
                 // Accessibility permission
-                Card(
-                    modifier = Modifier.padding(Dimens.mediumSpace),
-                    elevation = CardDefaults.cardElevation(defaultElevation = Dimens.mediumSpace),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(Dimens.mediumSpace),
+                if (viewModel.canDrawOverlay && viewModel.canRecordAudio) {
+                    Card(
+                        modifier = Modifier.padding(Dimens.mediumSpace),
+                        elevation = CardDefaults.cardElevation(defaultElevation = Dimens.mediumSpace),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                     ) {
-                        Text(
-                            text = "Accessibility permission${if (viewModel.hasAccessibilityPermission) " is enabled" else ""}",
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-
-                        Box(modifier = Modifier.height(Dimens.mediumSpace))
-
-                        Text(
-                            text = "This app needs accessibility permission so it can share the audio input with the VOIP apps.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-
-                        Box(modifier = Modifier.height(Dimens.largeSpace))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = if (viewModel.hasAccessibilityPermission) Arrangement.End else Arrangement.SpaceBetween,
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Dimens.mediumSpace),
                         ) {
-                            Timber.d("Test>>> hasAccessibilityPermission=${viewModel.hasAccessibilityPermission}")
-                            if (!viewModel.hasAccessibilityPermission) {
-                                TextButton(onClick = {
+                            Text(
+                                text = "Accessibility permission${if (viewModel.hasAccessibilityPermission) " is enabled" else ""}",
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
 
-                                }) {
-                                    Text(
-                                        text = "Learn more",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        textDecoration = TextDecoration.Underline,
+                            Box(modifier = Modifier.height(Dimens.mediumSpace))
+
+                            Text(
+                                text = "This app needs accessibility permission so it can share the audio input with the VOIP apps.",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+
+                            Box(modifier = Modifier.height(Dimens.largeSpace))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = if (viewModel.hasAccessibilityPermission) Arrangement.End else Arrangement.SpaceBetween,
+                            ) {
+                                Timber.d("Test>>> hasAccessibilityPermission=${viewModel.hasAccessibilityPermission}")
+                                if (!viewModel.hasAccessibilityPermission) {
+                                    TextButton(onClick = {
+
+                                    }) {
+                                        Text(
+                                            text = "Learn more",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            textDecoration = TextDecoration.Underline,
+                                        )
+                                    }
+
+                                    Button(onClick = handleAccessibilityPermission) {
+                                        Text(text = "Enable")
+                                    }
+                                } else {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_check_24dp),
+                                        contentDescription = "Accessibility permission enabled",
+                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                                     )
                                 }
-
-                                Button(onClick = handleAccessibilityPermission) {
-                                    Text(text = "Enable")
-                                }
-                            } else {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_check_24dp),
-                                    contentDescription = "Accessibility permission enabled",
-                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
-                                )
                             }
                         }
                     }

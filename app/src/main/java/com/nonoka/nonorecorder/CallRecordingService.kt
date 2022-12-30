@@ -10,12 +10,7 @@ import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
-import android.media.AudioDeviceInfo
 import android.media.AudioManager
-import android.media.MediaPlayer
-import android.media.MediaRecorder
-import android.media.MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED
-import android.media.MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED
 import android.os.Build
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -23,17 +18,11 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import com.nonoka.nonorecorder.constant.BroadcastData.actionFinishedRecording
-import com.nonoka.nonorecorder.constant.BroadcastData.extraDirectory
-import java.io.File
-import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.nonoka.nonorecorder.recorder.AudioCallRecorder
+import com.nonoka.nonorecorder.recorder.CallRecorder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -47,9 +36,9 @@ class CallRecordingService : AccessibilityService() {
     //WindowManager.LayoutParams params;
     //    AccessibilityService service;
 
-    private var player: MediaPlayer? = null
-
     private val ioScope = CoroutineScope(Dispatchers.IO)
+
+    private lateinit var callRecorder: CallRecorder
 
     private var audioMode = AudioManager.MODE_INVALID
 
@@ -61,8 +50,6 @@ class CallRecordingService : AccessibilityService() {
                     FLAG_IMMUTABLE
                 )
             }
-
-    private val dateFormat = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US)
 
     @SuppressLint("RtlHardcoded")
     override fun onCreate() {
@@ -123,6 +110,8 @@ class CallRecordingService : AccessibilityService() {
                 .build()
 
         startForeground(RECORDING_NOTIFICATION_ID, notification)
+
+        callRecorder = AudioCallRecorder()
 
         /*  back = new ImageView(this);
         home = new ImageView(this);
@@ -232,6 +221,7 @@ class CallRecordingService : AccessibilityService() {
     override fun onDestroy() {
         super.onDestroy()
         ioScope.cancel()
+        callRecorder.destroy()
     }
 
     /*  @Override
@@ -351,83 +341,6 @@ class CallRecordingService : AccessibilityService() {
         }*/
     }
 
-    /**
-     * Area of MediaRecorder - Beginning
-     */
-    private var recorder: MediaRecorder? = null
-    private lateinit var recordedMedia: File
-
-    private fun startCallRecording() {
-        @Suppress("DEPRECATION")
-        recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MediaRecorder(this)
-        } else {
-            MediaRecorder()
-        }
-        initMediaOutputFile()
-        // This must be needed source
-        recorder?.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
-        recorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        recorder?.setOutputFile(recordedMedia.absolutePath)
-        //recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        recorder?.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC)
-        try {
-            recorder?.prepare()
-            recorder?.start()
-            recorder?.setOnInfoListener { _, what, extra ->
-                val whatMessage = when (what) {
-                    MEDIA_RECORDER_INFO_MAX_DURATION_REACHED -> "Max duration reached"
-                    MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED -> "Max file size reached"
-                    else -> "Unknown"
-                }
-                Timber.d("Warning: $whatMessage, extra=$extra")
-            }
-        } catch (e: Throwable) {
-            Timber.e("prepare() failed with error $e")
-        }
-        Timber.d("recording started")
-
-        NotificationCompat.Builder(this, createNotificationChannel())
-            .setContentTitle(getText(R.string.recording_call))
-            .setSmallIcon(R.drawable.ic_mic_24dp)
-            .setContentIntent(pendingIntent)
-            .setTicker(getText(R.string.recording_call))
-            .setOnlyAlertOnce(true)
-            .build()
-            .let {
-                val notificationManager =
-                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
-            }
-    }
-
-    private fun stopCallRecording() {
-        recorder?.stop()
-        recorder?.release()
-        recorder = null
-        Timber.d("recording stopped")
-
-        ioScope.launch(Dispatchers.IO) {
-            delay(5000)
-            sendBroadcast(Intent(actionFinishedRecording).apply {
-                putExtra(extraDirectory, recordedMedia.parentFile?.absolutePath)
-            })
-        }
-
-        NotificationCompat.Builder(this, createNotificationChannel())
-            .setContentTitle(getText(R.string.waiting_for_call))
-            .setSmallIcon(R.drawable.ic_standby_24dp)
-            .setContentIntent(pendingIntent)
-            .setTicker(getText(R.string.waiting_for_call))
-            .setOnlyAlertOnce(true)
-            .build()
-            .let {
-                val notificationManager =
-                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
-            }
-    }
-
     private fun createNotificationChannel(): String {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -442,147 +355,21 @@ class CallRecordingService : AccessibilityService() {
         return CHANNEL_ID
     }
 
-
-    //=================================================Added code start==========
-
-    //=================================================Added code start==========
-    private var mRecorder: MediaRecorder? = null
-    private var isStarted = false
-
-    fun startRecording() {
-        try {
-
-            /*   String timestamp = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss", Locale.US).format(new Date());
-            String fileName =timestamp+".3gp";
-            mediaSaver = new MediaSaver(context).setParentDirectoryName("Accessibility").
-
-                    setFileNameKeepOriginalExtension(fileName).
-                    setExternal(MediaSaver.isExternalStorageReadable());*/
-            //String selectedPath = Environment.getExternalStorageDirectory() + "/Testing";
-            //String selectedPath = Environment.getExternalStorageDirectory().getAbsolutePath() +"/Android/data/" + packageName + "/system_sound";
-            @Suppress("DEPRECATION")
-            mRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                MediaRecorder(this)
-            } else {
-                MediaRecorder()
-            }
-            //            mRecorder.reset();
-
-            //android.permission.MODIFY_AUDIO_SETTINGS
-            val mAudioManager: AudioManager =
-                getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            //turn on speaker
-            mAudioManager.mode =
-                AudioManager.MODE_IN_COMMUNICATION //MODE_IN_COMMUNICATION | MODE_IN_CALL
-            // mAudioManager.setSpeakerphoneOn(true);
-            // mAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, mAudioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL), 0); // increase Volume
-            hasWiredHeadset(mAudioManager)
-
-            //android.permission.RECORD_AUDIO
-            val manufacturer = Build.MANUFACTURER
-            Timber.d(manufacturer)
-            /* if (manufacturer.toLowerCase().contains("samsung")) {
-                mRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
-            } else {
-                mRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_CALL);
-            }*/
-            /*
-            VOICE_CALL is the actual call data being sent in a call, up and down (so your side and their side). VOICE_COMMUNICATION is just the microphone, but with codecs and echo cancellation turned on for good voice quality.
-            */
-            mRecorder!!.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION) //MIC | VOICE_COMMUNICATION (Android 10 release) | VOICE_RECOGNITION | (VOICE_CALL = VOICE_UPLINK + VOICE_DOWNLINK)
-            mRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP) //THREE_GPP | MPEG_4
-            mRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB) //AMR_NB | AAC
-            mRecorder!!.setOutputFile(recordedMedia.absolutePath)
-            mRecorder!!.prepare()
-            mRecorder!!.start()
-            isStarted = true
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
-
-    fun stopRecording() {
-        if (isStarted && mRecorder != null) {
-            mRecorder!!.stop()
-            mRecorder!!.reset() // You can reuse the object by going back to setAudioSource() step
-            mRecorder!!.release()
-            mRecorder = null
-            isStarted = false
-        }
-    }
-
-    private fun startPlaying() {
-        player = MediaPlayer()
-        try {
-            player?.setDataSource(recordedMedia.absolutePath)
-            player?.prepare()
-            player?.start()
-        } catch (e: IOException) {
-            Timber.d("prepare() failed")
-        }
-    }
-
-    private fun stopPlaying() {
-        player?.release()
-        player = null
-    }
-
-    private fun initMediaOutputFile() {
-        val recordDir = File(filesDir.absolutePath, "recorded")
-        if (!recordDir.exists()) {
-            recordDir.mkdir()
-        }
-        recordedMedia = File(recordDir, "${dateFormat.format(Date())}.mp4")
-        recordedMedia.createNewFile()
-    }
-
-    /**
-     * Area of MediaRecorder - Ending
-     */
-
-    // To detect the connected other device like headphone, wifi headphone, usb headphone etc
-    private fun hasWiredHeadset(mAudioManager: AudioManager): Boolean {
-        val devices = arrayListOf<AudioDeviceInfo>().apply {
-            addAll(mAudioManager.getDevices(AudioManager.GET_DEVICES_INPUTS))
-            addAll(mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS))
-        }
-        for (device: AudioDeviceInfo in devices) {
-            when (device.type) {
-                AudioDeviceInfo.TYPE_WIRED_HEADSET -> {
-                    Timber.d("hasWiredHeadset: found wired headset")
-                    return true
-                }
-                AudioDeviceInfo.TYPE_USB_DEVICE -> {
-                    Timber.d("hasWiredHeadset: found USB audio device")
-                    return true
-                }
-                AudioDeviceInfo.TYPE_TELEPHONY -> {
-                    Timber.d("hasWiredHeadset: found audio signals over the telephony network")
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-
-    //=================================End================================
-
-    //=================================End================================
-
     // Audio mode listening area - Start
     private fun onAudioModeChange(newMode: Int) {
         when (newMode) {
             AudioManager.MODE_IN_CALL -> {
                 Timber.d("AudioMode>>> In a call")
                 if (audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) {
-                    startCallRecording()
+                    callRecorder.startCallRecording(this)
+                    onStartRecording()
                 }
             }
             AudioManager.MODE_IN_COMMUNICATION -> {
                 Timber.d("AudioMode>>> In a VOIP call")
                 if (audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) {
-                    startCallRecording()
+                    callRecorder.startCallRecording(this)
+                    onStartRecording()
                 }
             }
             AudioManager.MODE_RINGTONE -> {
@@ -600,7 +387,8 @@ class CallRecordingService : AccessibilityService() {
             AudioManager.MODE_NORMAL -> {
                 Timber.d("AudioMode>>> Normal")
                 if (audioMode == AudioManager.MODE_IN_COMMUNICATION || audioMode == AudioManager.MODE_IN_CALL) {
-                    stopCallRecording()
+                    callRecorder.stopCallRecording(this)
+                    onStopRecording()
                 }
             }
             AudioManager.MODE_CALL_REDIRECT -> {
@@ -614,15 +402,41 @@ class CallRecordingService : AccessibilityService() {
     }
     // Audio mode listening area - End
 
+    private fun onStartRecording() {
+        NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle(getText(R.string.recording_call))
+            .setSmallIcon(R.drawable.ic_mic_24dp)
+            .setContentIntent(pendingIntent)
+            .setTicker(getText(R.string.recording_call))
+            .setOnlyAlertOnce(true)
+            .build()
+            .let {
+                val notificationManager =
+                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
+            }
+    }
+
+    private fun onStopRecording() {
+        NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle(getText(R.string.waiting_for_call))
+            .setSmallIcon(R.drawable.ic_standby_24dp)
+            .setContentIntent(pendingIntent)
+            .setTicker(getText(R.string.waiting_for_call))
+            .setOnlyAlertOnce(true)
+            .build()
+            .let {
+                val notificationManager =
+                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
+            }
+    }
+
     companion object {
         private const val CHANNEL_ID = "RecordingChannel"
 
         private const val RECORDING_NOTIFICATION_ID = 11
-        private const val AUDIO_MODE_CHECK_INTERVAL = 1000L
 
-        @JvmStatic
-        fun start(context: Context) {
-            context.startService(Intent(context, CallRecordingService::class.java))
-        }
+        private const val AUDIO_MODE_CHECK_INTERVAL = 1000L
     }
 }
