@@ -1,6 +1,5 @@
 package com.nonoka.nonorecorder
 
-import android.Manifest
 import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -10,12 +9,9 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.media.AudioDeviceInfo
-import android.media.AudioFormat
 import android.media.AudioManager
-import android.media.AudioRecord
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.media.MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED
@@ -25,7 +21,6 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.nonoka.nonorecorder.constant.BroadcastData.actionFinishedRecording
@@ -53,9 +48,6 @@ class CallRecordingService : AccessibilityService() {
     //    AccessibilityService service;
 
     private var player: MediaPlayer? = null
-    private var recorder: MediaRecorder? = null
-
-    private lateinit var file: File
 
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
@@ -359,21 +351,11 @@ class CallRecordingService : AccessibilityService() {
         }*/
     }
 
-    private fun startPlaying() {
-        player = MediaPlayer()
-        try {
-            player?.setDataSource(file.absolutePath)
-            player?.prepare()
-            player?.start()
-        } catch (e: IOException) {
-            Timber.d("prepare() failed")
-        }
-    }
-
-    private fun stopPlaying() {
-        player?.release()
-        player = null
-    }
+    /**
+     * Area of MediaRecorder - Beginning
+     */
+    private var recorder: MediaRecorder? = null
+    private lateinit var recordedMedia: File
 
     private fun startCallRecording() {
         @Suppress("DEPRECATION")
@@ -382,11 +364,11 @@ class CallRecordingService : AccessibilityService() {
         } else {
             MediaRecorder()
         }
-        initOutputFile()
+        initMediaOutputFile()
         // This must be needed source
         recorder?.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
         recorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        recorder?.setOutputFile(file.absolutePath)
+        recorder?.setOutputFile(recordedMedia.absolutePath)
         //recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         recorder?.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC)
         try {
@@ -419,7 +401,6 @@ class CallRecordingService : AccessibilityService() {
             }
     }
 
-
     private fun stopCallRecording() {
         recorder?.stop()
         recorder?.release()
@@ -429,7 +410,7 @@ class CallRecordingService : AccessibilityService() {
         ioScope.launch(Dispatchers.IO) {
             delay(5000)
             sendBroadcast(Intent(actionFinishedRecording).apply {
-                putExtra(extraDirectory, file.parentFile?.absolutePath)
+                putExtra(extraDirectory, recordedMedia.parentFile?.absolutePath)
             })
         }
 
@@ -467,7 +448,6 @@ class CallRecordingService : AccessibilityService() {
     //=================================================Added code start==========
     private var mRecorder: MediaRecorder? = null
     private var isStarted = false
-
 
     fun startRecording() {
         try {
@@ -512,7 +492,7 @@ class CallRecordingService : AccessibilityService() {
             mRecorder!!.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION) //MIC | VOICE_COMMUNICATION (Android 10 release) | VOICE_RECOGNITION | (VOICE_CALL = VOICE_UPLINK + VOICE_DOWNLINK)
             mRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP) //THREE_GPP | MPEG_4
             mRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB) //AMR_NB | AAC
-            mRecorder!!.setOutputFile(file.absolutePath)
+            mRecorder!!.setOutputFile(recordedMedia.absolutePath)
             mRecorder!!.prepare()
             mRecorder!!.start()
             isStarted = true
@@ -530,6 +510,35 @@ class CallRecordingService : AccessibilityService() {
             isStarted = false
         }
     }
+
+    private fun startPlaying() {
+        player = MediaPlayer()
+        try {
+            player?.setDataSource(recordedMedia.absolutePath)
+            player?.prepare()
+            player?.start()
+        } catch (e: IOException) {
+            Timber.d("prepare() failed")
+        }
+    }
+
+    private fun stopPlaying() {
+        player?.release()
+        player = null
+    }
+
+    private fun initMediaOutputFile() {
+        val recordDir = File(filesDir.absolutePath, "recorded")
+        if (!recordDir.exists()) {
+            recordDir.mkdir()
+        }
+        recordedMedia = File(recordDir, "${dateFormat.format(Date())}.mp4")
+        recordedMedia.createNewFile()
+    }
+
+    /**
+     * Area of MediaRecorder - Ending
+     */
 
     // To detect the connected other device like headphone, wifi headphone, usb headphone etc
     private fun hasWiredHeadset(mAudioManager: AudioManager): Boolean {
@@ -604,15 +613,6 @@ class CallRecordingService : AccessibilityService() {
         audioMode = newMode
     }
     // Audio mode listening area - End
-
-    private fun initOutputFile() {
-        val recordDir = File(filesDir.absolutePath, "recorded")
-        if (!recordDir.exists()) {
-            recordDir.mkdir()
-        }
-        file = File(recordDir, "${dateFormat.format(Date())}.mp4")
-        file.createNewFile()
-    }
 
     companion object {
         private const val CHANNEL_ID = "RecordingChannel"
