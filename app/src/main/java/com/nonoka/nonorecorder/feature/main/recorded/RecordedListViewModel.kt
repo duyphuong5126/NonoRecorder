@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
+import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.BrokenRecordedFileUiModel
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -42,29 +43,40 @@ class RecordedListViewModel : ViewModel() {
                         file.lastModified()
                     }
                 }?.forEachIndexed { index, file ->
-                    retriever.setDataSource(file.absolutePath)
-                    val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
-                        ?: file.name ?: "Unknown"
-                    val durationMillis =
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                            ?.toLong() ?: 0L
-
                     val dateModified = dateFormat.format(file.lastModified())
                     if (lastDateModified != dateModified) {
                         recordedFiles.add(RecordedDate(dateModified))
                         lastDateModified = dateModified
                     }
-                    recordedFiles.add(
-                        RecordedFileUiModel(
-                            id = index,
-                            name = title,
-                            duration = DurationFormatUtils.formatDuration(
-                                durationMillis,
-                                durationFormat
-                            ),
-                            lastModified = dateTimeFormat.format(file.lastModified())
+
+                    try {
+                        retriever.setDataSource(file.absolutePath)
+                        val title =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+                                ?: file.name ?: "Unknown"
+                        val durationMillis =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                ?.toLong() ?: 0L
+                        recordedFiles.add(
+                            RecordedFileUiModel(
+                                id = index,
+                                name = title,
+                                duration = DurationFormatUtils.formatDuration(
+                                    durationMillis,
+                                    durationFormat
+                                ),
+                                lastModified = dateTimeFormat.format(file.lastModified())
+                            )
                         )
-                    )
+                    } catch (error: Throwable) {
+                        recordedFiles.add(
+                            BrokenRecordedFileUiModel(
+                                id = index,
+                                name = file.name,
+                                lastModified = dateTimeFormat.format(file.lastModified())
+                            )
+                        )
+                    }
                 }
                 recordedList = recordedFiles
             }

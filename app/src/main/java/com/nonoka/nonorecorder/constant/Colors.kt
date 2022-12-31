@@ -8,8 +8,6 @@ import androidx.compose.ui.graphics.Color
 
 object Colors {
     val white = Color(0xFFFFFFFF)
-    val grey500 = Color(0xFF9E9E9E)
-    val grey900 = Color(0xFF212121)
 
     val transparency = Color(0x00000000)
 
@@ -40,6 +38,11 @@ object Colors {
 
             surface = Color(0xFF266C94),
             onSurface = Color(0xFFFFFFFF),
+
+            error = Color(0xFFB71C1C),
+            onError = Color(0xFFFFFFFF),
+            errorContainer = Color(0xFFFFCDD2),
+            onErrorContainer = Color(0xFFD32F2F),
         )
     }
 
@@ -66,6 +69,11 @@ object Colors {
 
             surface = Color(0xFF266C94),
             onSurface = Color(0xFFFFFFFF),
+
+            error = Color(0xFFB71C1C),
+            onError = Color(0xFFFFFFFF),
+            errorContainer = Color(0xFFFFCDD2),
+            onErrorContainer = Color(0xFFD32F2F),
         )
     }
 }

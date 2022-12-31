@@ -10,4 +10,10 @@ sealed class RecordedItem {
         val duration: String,
         val lastModified: String
     ) : RecordedItem()
+
+    data class BrokenRecordedFileUiModel(
+        val id: Int,
+        val name: String,
+        val lastModified: String
+    ) : RecordedItem()
 }

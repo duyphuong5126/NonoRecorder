@@ -14,6 +14,7 @@ object Dimens {
 
     val largeIconSize = 48.dp
     val normalIconSize = 24.dp
+    val extraMediumIconSize = 16.dp
     val mediumIconSize = 12.dp
 
     val topBarIconSize = 32.dp

@@ -44,7 +44,7 @@ fun HomePage(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(text = "VOIP Permissions")
+                        Text(text = "Recording permissions")
                     },
                 )
             },
