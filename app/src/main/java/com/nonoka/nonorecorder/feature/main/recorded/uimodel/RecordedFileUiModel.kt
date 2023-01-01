@@ -8,7 +8,8 @@ sealed class RecordedItem {
         val id: Int,
         val name: String,
         val duration: String,
-        val lastModified: String
+        val lastModified: String,
+        val filePath: String
     ) : RecordedItem()
 
     data class BrokenRecordedFileUiModel(

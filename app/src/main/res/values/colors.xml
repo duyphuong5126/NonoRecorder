@@ -9,4 +9,7 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="primary">#FF266C94</color>
+    <color name="primary_container">#FF0A3953</color>
+    <color name="secondary">#FF756391</color>
+    <color name="secondary_container">#FF473563</color>
 </resources>

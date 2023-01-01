@@ -8,7 +8,7 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder.AudioSource.VOICE_RECOGNITION
 import androidx.core.content.ContextCompat.checkSelfPermission
-import com.nonoka.nonorecorder.constant.BroadcastData
+import com.nonoka.nonorecorder.constant.IntentConstants
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -83,8 +83,8 @@ class AudioCallRecorder : CallRecorder {
 
         ioScope.launch {
             delay(5000)
-            context.sendBroadcast(Intent(BroadcastData.actionFinishedRecording).apply {
-                putExtra(BroadcastData.extraDirectory, recordedAudioFile.parentFile?.absolutePath)
+            context.sendBroadcast(Intent(IntentConstants.actionFinishedRecording).apply {
+                putExtra(IntentConstants.extraDirectory, recordedAudioFile.parentFile?.absolutePath)
             })
         }
     }

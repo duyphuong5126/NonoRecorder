@@ -43,7 +43,10 @@ import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.Broken
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecordedListPage(recordedListViewModel: RecordedListViewModel) {
+fun RecordedListPage(
+    recordedListViewModel: RecordedListViewModel,
+    onStartPlaying: (String) -> Unit
+) {
     MaterialTheme(colorScheme = Colors.getColorScheme()) {
         Scaffold(
             topBar = {
@@ -55,7 +58,11 @@ fun RecordedListPage(recordedListViewModel: RecordedListViewModel) {
             },
         ) {
             if (recordedListViewModel.recordedList.isNotEmpty()) {
-                RecordedList(list = recordedListViewModel.recordedList, paddingValues = it)
+                RecordedList(
+                    list = recordedListViewModel.recordedList,
+                    paddingValues = it,
+                    onStartPlaying = onStartPlaying
+                )
             } else {
                 EmptyRecordedList(paddingValues = it)
             }
@@ -86,7 +93,11 @@ private fun EmptyRecordedList(paddingValues: PaddingValues) {
 }
 
 @Composable
-private fun RecordedList(list: List<RecordedItem>, paddingValues: PaddingValues) {
+private fun RecordedList(
+    onStartPlaying: (String) -> Unit,
+    list: List<RecordedItem>,
+    paddingValues: PaddingValues
+) {
     LazyColumn(
         modifier = Modifier.padding(paddingValues), verticalArrangement = Arrangement.Top,
     ) {
@@ -94,7 +105,10 @@ private fun RecordedList(list: List<RecordedItem>, paddingValues: PaddingValues)
             item.hashCode()
         }) { recordedItem ->
             when (recordedItem) {
-                is RecordedFileUiModel -> RecordedFile(recordedFile = recordedItem)
+                is RecordedFileUiModel -> RecordedFile(
+                    recordedFile = recordedItem,
+                    onStartPlaying = onStartPlaying
+                )
                 is RecordedDate -> RecordedDateItem(recordedDate = recordedItem)
                 is BrokenRecordedFileUiModel -> BrokenRecordedFile(recordedFile = recordedItem)
             }
@@ -107,7 +121,7 @@ private fun RecordedList(list: List<RecordedItem>, paddingValues: PaddingValues)
 }
 
 @Composable
-private fun RecordedFile(recordedFile: RecordedFileUiModel) {
+private fun RecordedFile(onStartPlaying: (String) -> Unit, recordedFile: RecordedFileUiModel) {
     Card(
         modifier = Modifier
             .padding(Dimens.mediumSpace)
@@ -184,7 +198,9 @@ private fun RecordedFile(recordedFile: RecordedFileUiModel) {
                     }
                 }
 
-                Button(onClick = {}) {
+                Button(onClick = {
+                    onStartPlaying(recordedFile.filePath)
+                }) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_play_24dp),
                         contentDescription = "Play",

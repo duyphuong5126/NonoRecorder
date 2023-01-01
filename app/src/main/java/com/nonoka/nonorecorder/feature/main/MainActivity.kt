@@ -33,13 +33,14 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.nonoka.nonorecorder.CallRecordingService
 import com.nonoka.nonorecorder.R
-import com.nonoka.nonorecorder.constant.BroadcastData.actionFinishedRecording
-import com.nonoka.nonorecorder.constant.BroadcastData.extraDirectory
+import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
+import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
 import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.feature.main.home.HomePage
 import com.nonoka.nonorecorder.feature.main.home.HomeViewModel
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListPage
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListViewModel
+import com.nonoka.nonorecorder.feature.player.AudioPlayerActivity
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -194,7 +195,9 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         composable(recordedListRouteName) {
-                            RecordedListPage(recordedListViewModel)
+                            RecordedListPage(recordedListViewModel) { filePath ->
+                                AudioPlayerActivity.start(this@MainActivity, filePath)
+                            }
                         }
                     }
                 }

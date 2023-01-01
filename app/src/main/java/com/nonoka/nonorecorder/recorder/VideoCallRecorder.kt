@@ -4,7 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
 import android.os.Build
-import com.nonoka.nonorecorder.constant.BroadcastData
+import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
+import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -63,8 +64,8 @@ class VideoCallRecorder : CallRecorder {
 
         ioScope.launch(Dispatchers.IO) {
             delay(5000)
-            context.sendBroadcast(Intent(BroadcastData.actionFinishedRecording).apply {
-                putExtra(BroadcastData.extraDirectory, recordedVideo.parentFile?.absolutePath)
+            context.sendBroadcast(Intent(actionFinishedRecording).apply {
+                putExtra(extraDirectory, recordedVideo.parentFile?.absolutePath)
             })
         }
     }

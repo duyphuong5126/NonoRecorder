@@ -65,7 +65,8 @@ class RecordedListViewModel : ViewModel() {
                                     durationMillis,
                                     durationFormat
                                 ),
-                                lastModified = dateTimeFormat.format(file.lastModified())
+                                lastModified = dateTimeFormat.format(file.lastModified()),
+                                filePath = file.absolutePath
                             )
                         )
                     } catch (error: Throwable) {
