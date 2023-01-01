@@ -30,7 +30,9 @@ class AudioPlayerActivity : AppCompatActivity(), Player.Listener {
         setContentView(viewBinding.root)
 
         val mediaUri: Uri = intent.getStringExtra(extraFilePath)?.let {
-            Uri.fromFile(File(it))
+            val audioFile = File(it)
+            viewBinding.trackTitle.text = audioFile.nameWithoutExtension
+            Uri.fromFile(audioFile)
         } ?: return
 
         val renderersFactory = buildRenderersFactory(applicationContext, true)
@@ -49,7 +51,7 @@ class AudioPlayerActivity : AppCompatActivity(), Player.Listener {
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
 
-        viewBinding.videoView.player = exoPlayer
+        viewBinding.audioPlayer.player = exoPlayer
     }
 
     private fun buildRenderersFactory(

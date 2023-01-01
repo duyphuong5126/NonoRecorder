@@ -7,9 +7,27 @@
     tools:context=".feature.player.AudioPlayerActivity">
 
     <com.google.android.exoplayer2.ui.PlayerView
-        android:id="@+id/video_view"
+        android:id="@+id/audio_player"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:controller_layout_id="@layout/layout_audio_player" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusableInTouchMode="false"
+        android:gravity="center"
+        android:paddingTop="@dimen/big_space"
+        android:paddingBottom="228dp">
+
+        <TextView
+            android:id="@+id/track_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/white"
+            tools:text="Track title" />
+
+    </LinearLayout>
 
 </FrameLayout>

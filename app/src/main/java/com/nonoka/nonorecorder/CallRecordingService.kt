@@ -405,7 +405,7 @@ class CallRecordingService : AccessibilityService() {
     private fun onStartRecording() {
         NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getText(R.string.recording_call))
-            .setSmallIcon(R.drawable.ic_mic_24dp)
+            .setSmallIcon(R.drawable.ic_microphone_solid_24dp)
             .setContentIntent(pendingIntent)
             .setTicker(getText(R.string.recording_call))
             .setOnlyAlertOnce(true)

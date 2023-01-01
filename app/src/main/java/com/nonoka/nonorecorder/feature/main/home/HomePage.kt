@@ -67,7 +67,7 @@ fun HomePage(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_check_circle_24dp),
+                            painter = painterResource(id = R.drawable.ic_circle_check_solid_24dp),
                             contentDescription = "All set icon",
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
                             modifier = Modifier
@@ -96,7 +96,7 @@ fun HomePage(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_info_24dp),
+                            painter = painterResource(id = R.drawable.ic_info_solid_24dp),
                             contentDescription = "Permissions information",
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
@@ -167,7 +167,7 @@ fun HomePage(
                                 }
                             } else {
                                 Image(
-                                    painter = painterResource(id = R.drawable.ic_check_24dp),
+                                    painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
                                     contentDescription = "Appear on top permission enabled",
                                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                                 )
@@ -221,7 +221,7 @@ fun HomePage(
                                 }
                             } else {
                                 Image(
-                                    painter = painterResource(id = R.drawable.ic_check_24dp),
+                                    painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
                                     contentDescription = "Recording permission enabled",
                                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                                 )
@@ -277,7 +277,7 @@ fun HomePage(
                                     }
                                 } else {
                                     Image(
-                                        painter = painterResource(id = R.drawable.ic_check_24dp),
+                                        painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
                                         contentDescription = "Accessibility permission enabled",
                                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                                     )

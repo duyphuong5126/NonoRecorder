@@ -173,7 +173,7 @@ private fun RecordedFile(onStartPlaying: (String) -> Unit, recordedFile: Recorde
 
                     }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_edit_24dp),
+                            painter = painterResource(id = R.drawable.ic_edit_solid_24dp),
                             contentDescription = "Edit",
                             tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier
@@ -188,7 +188,7 @@ private fun RecordedFile(onStartPlaying: (String) -> Unit, recordedFile: Recorde
 
                     }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_delete_24dp),
+                            painter = painterResource(id = R.drawable.ic_trash_solid_24dp),
                             contentDescription = "Delete",
                             tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier
@@ -202,12 +202,13 @@ private fun RecordedFile(onStartPlaying: (String) -> Unit, recordedFile: Recorde
                     onStartPlaying(recordedFile.filePath)
                 }) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_play_24dp),
+                        painter = painterResource(id = R.drawable.ic_play_solid_24dp),
                         contentDescription = "Play",
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
+                        modifier = Modifier.height(Dimens.extraMediumIconSize)
                     )
 
-                    Box(modifier = Modifier.width(Dimens.smallSpace))
+                    Box(modifier = Modifier.width(Dimens.mediumSpace))
 
                     Text(text = "Play")
                 }
@@ -269,7 +270,7 @@ private fun BrokenRecordedFile(recordedFile: BrokenRecordedFileUiModel) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_error_24dp),
+                        painter = painterResource(id = R.drawable.ic_error_solid_24dp),
                         contentDescription = "Broken",
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.error),
                         modifier = Modifier

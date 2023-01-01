@@ -251,8 +251,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun getIconRes(route: MainNavigationRoute): Int {
         return when (route) {
-            is MainNavigationRoute.HomeRouteMain -> R.drawable.ic_home_24dp
-            is MainNavigationRoute.RecordedListRouteMain -> R.drawable.ic_list_24dp
+            is MainNavigationRoute.HomeRouteMain -> R.drawable.ic_home_solid_24dp
+            is MainNavigationRoute.RecordedListRouteMain -> R.drawable.ic_list_solid_24dp
         }
     }
 
