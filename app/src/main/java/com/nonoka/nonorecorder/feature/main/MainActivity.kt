@@ -15,15 +15,20 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -36,6 +41,8 @@ import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
 import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
 import com.nonoka.nonorecorder.constant.Colors
+import com.nonoka.nonorecorder.constant.Dimens
+import com.nonoka.nonorecorder.constant.brandTypography
 import com.nonoka.nonorecorder.feature.main.home.HomePage
 import com.nonoka.nonorecorder.feature.main.home.HomeViewModel
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListPage
@@ -120,18 +127,20 @@ class MainActivity : AppCompatActivity() {
         val defaultNavigationRoutes =
             arrayOf(
                 MainNavigationRoute.HomeRouteMain(label = "Home"),
-                MainNavigationRoute.RecordedListRouteMain(label = "Recorded List")
+                MainNavigationRoute.RecordedListRouteMain(label = "Recorded")
             )
         setContent {
 
             val navController = rememberNavController()
             MaterialTheme(
                 colorScheme = Colors.getColorScheme(),
+                typography = MaterialTheme.brandTypography()
             ) {
                 Scaffold(
                     bottomBar = {
                         BottomNavigation(
-                            backgroundColor = MaterialTheme.colorScheme.surface,
+                            backgroundColor = MaterialTheme.colorScheme.background,
+                            elevation = 0.dp
                         ) {
                             val navBackStackEntry by navController.currentBackStackEntryAsState()
                             val currentDestination = navBackStackEntry?.destination
@@ -140,6 +149,15 @@ class MainActivity : AppCompatActivity() {
                                 val isSelected = currentDestination?.route == route.id
                                 BottomNavigationItem(
                                     selected = isSelected,
+                                    label = {
+                                        Text(
+                                            text = route.label,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = if (isSelected) LocalContentColor.current else LocalContentColor.current.copy(
+                                                alpha = ContentAlpha.medium
+                                            )
+                                        )
+                                    },
                                     onClick = {
                                         navController.navigate(route.id) {
                                             // Pop up to the start destination of the graph to
@@ -158,7 +176,10 @@ class MainActivity : AppCompatActivity() {
                                     icon = {
                                         Icon(
                                             painter = painterResource(id = getIconRes(route)),
-                                            contentDescription = "Home",
+                                            contentDescription = route.label,
+                                            modifier = Modifier
+                                                .size(Dimens.normalIconSize)
+                                                .padding(bottom = Dimens.smallSpace),
                                         )
                                     },
                                     selectedContentColor = MaterialTheme.colorScheme.onSurface,

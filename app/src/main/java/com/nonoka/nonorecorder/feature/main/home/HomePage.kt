@@ -1,6 +1,7 @@
 package com.nonoka.nonorecorder.feature.main.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,19 +10,21 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -29,6 +32,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
+import com.nonoka.nonorecorder.constant.titleAppBar
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,8 +48,12 @@ fun HomePage(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(text = "Recording permissions")
+                        Text(
+                            text = "Recording permissions",
+                            style = MaterialTheme.typography.titleAppBar.copy(color = LocalContentColor.current),
+                        )
                     },
+                    colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
             },
         ) {
@@ -69,39 +77,39 @@ fun HomePage(
                         Image(
                             painter = painterResource(id = R.drawable.ic_circle_check_solid_24dp),
                             contentDescription = "All set icon",
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
-                            modifier = Modifier
-                                .width(Dimens.largeIconSize)
-                                .height(Dimens.largeIconSize)
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                            modifier = Modifier.size(Dimens.largeIconSize)
                         )
+
+                        Box(modifier = Modifier.height(Dimens.mediumSpace))
 
                         Text(
                             text = "You're all set!",
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(horizontal = Dimens.mediumSpace),
                         )
-                    }
 
-                    Text(
-                        text = "All permissions for recording VOIP calls are granted.\nA call detector is running and ready to record your calls.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(horizontal = Dimens.mediumSpace),
-                        textAlign = TextAlign.Center
-                    )
+                        Box(modifier = Modifier.height(Dimens.smallSpace))
+
+                        Text(
+                            text = "All permissions for recording calls are granted.\nYour VOIP calls will be recorded automatically.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(horizontal = Dimens.mediumSpace),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 } else {
-                    Row(
+                    Column(
                         modifier = Modifier
                             .padding(horizontal = Dimens.mediumSpace)
                             .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_info_solid_24dp),
                             contentDescription = "Permissions information",
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-                            modifier = Modifier
-                                .width(Dimens.headlineIconSize)
-                                .height(Dimens.headlineIconSize)
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                            modifier = Modifier.size(Dimens.largeIconSize)
                         )
 
                         Box(modifier = Modifier.height(Dimens.mediumSpace))
@@ -111,26 +119,33 @@ fun HomePage(
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(horizontal = Dimens.mediumSpace),
                         )
-                    }
 
-                    Text(
-                        text = "Some permissions are required so that the app can record VOIP calls properly. Please consider granting them.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(horizontal = Dimens.mediumSpace),
-                    )
+                        Box(modifier = Modifier.height(Dimens.smallSpace))
+
+                        Text(
+                            text = "App needs some permissions to record VOIP calls.\nPlease consider granting them.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(horizontal = Dimens.mediumSpace),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
 
                 Box(modifier = Modifier.height(Dimens.normalSpace))
 
                 // Appears on top permission
-                Card(
-                    modifier = Modifier.padding(Dimens.mediumSpace),
-                    elevation = CardDefaults.cardElevation(defaultElevation = Dimens.mediumSpace),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimens.mediumSpace)
+                        .clip(
+                            shape = RoundedCornerShape(Dimens.normalCornersRadius)
+                        )
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .background(color = MaterialTheme.colorScheme.surface)
                             .padding(Dimens.mediumSpace),
                     ) {
                         Text(
@@ -168,8 +183,7 @@ fun HomePage(
                             } else {
                                 Image(
                                     painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
-                                    contentDescription = "Appear on top permission enabled",
-                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
+                                    contentDescription = "Appear on top permission enabled"
                                 )
                             }
                         }
@@ -177,14 +191,18 @@ fun HomePage(
                 }
 
                 // Recording permission
-                Card(
-                    modifier = Modifier.padding(Dimens.mediumSpace),
-                    elevation = CardDefaults.cardElevation(defaultElevation = Dimens.mediumSpace),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimens.mediumSpace)
+                        .clip(
+                            shape = RoundedCornerShape(Dimens.normalCornersRadius)
+                        )
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .background(color = MaterialTheme.colorScheme.surface)
                             .padding(Dimens.mediumSpace),
                     ) {
                         Text(
@@ -223,7 +241,6 @@ fun HomePage(
                                 Image(
                                     painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
                                     contentDescription = "Recording permission enabled",
-                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                                 )
                             }
                         }
@@ -232,14 +249,18 @@ fun HomePage(
 
                 // Accessibility permission
                 if (viewModel.canDrawOverlay && viewModel.canRecordAudio) {
-                    Card(
-                        modifier = Modifier.padding(Dimens.mediumSpace),
-                        elevation = CardDefaults.cardElevation(defaultElevation = Dimens.mediumSpace),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Dimens.mediumSpace)
+                            .clip(
+                                shape = RoundedCornerShape(Dimens.normalCornersRadius)
+                            )
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .background(color = MaterialTheme.colorScheme.surface)
                                 .padding(Dimens.mediumSpace),
                         ) {
                             Text(
@@ -260,7 +281,7 @@ fun HomePage(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = if (viewModel.hasAccessibilityPermission) Arrangement.End else Arrangement.SpaceBetween,
                             ) {
-                                Timber.d("Test>>> hasAccessibilityPermission=${viewModel.hasAccessibilityPermission}")
+                                Timber.d("hasAccessibilityPermission=${viewModel.hasAccessibilityPermission}")
                                 if (!viewModel.hasAccessibilityPermission) {
                                     TextButton(onClick = {
 

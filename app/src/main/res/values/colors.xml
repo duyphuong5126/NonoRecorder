@@ -14,4 +14,9 @@
     <color name="primary_container">#FF0A3953</color>
     <color name="secondary">#FF756391</color>
     <color name="secondary_container">#FF473563</color>
+
+    <color name="gray_200">#FFEEEEEE</color>
+    <color name="gray_500">#FF9E9E9E</color>
+    <color name="gray_700">#FF616161</color>
+    <color name="gray_900">#FF212121</color>
 </resources>

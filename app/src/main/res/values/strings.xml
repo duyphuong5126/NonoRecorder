@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NonoRecorder</string>
+    <string name="app_name">Nono Recorder</string>
     <string name="accessibility_service_description">Accessibility setting must be enabled</string>
 
     <string name="waiting_for_call">Stand by - Waiting for a call</string>

@@ -18,6 +18,8 @@ object Dimens {
     val mediumIconSize = 12.dp
 
     val topBarIconSize = 32.dp
-    val bottomNavIconSize = 40.dp
+    val bottomNavIconSize = 20.dp
     val headlineIconSize = 28.dp
+
+    val normalCornersRadius = 16.dp
 }

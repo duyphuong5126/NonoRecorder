@@ -18,26 +18,26 @@ object Colors {
     @Composable
     private fun getLightColorScheme(): ColorScheme {
         return MaterialTheme.colorScheme.copy(
-            primary = Color(0xFF266C94),
-            onPrimary = Color(0xFFDDEBF3),
-            primaryContainer = Color(0xFFDDEBF3),
-            onPrimaryContainer = Color(0xFF0A3953),
+            primary = Color(0xFF537951),
+            onPrimary = Color(0xFFFFFFFF),
+            primaryContainer = Color(0xFFB8E6B5),
+            onPrimaryContainer = Color(0xFF325830),
 
             secondary = Color(0xFF756391),
             onSecondary = Color(0xFFDED4ED),
             secondaryContainer = Color(0xFFDED4ED),
             onSecondaryContainer = Color(0xFF473563),
 
-            tertiary = Color(0xFF537951),
-            onTertiary = Color(0xFFB8E6B5),
-            tertiaryContainer = Color(0xFFB8E6B5),
-            onTertiaryContainer = Color(0xFF325830),
+            tertiary = Color(0xFF266C94),
+            onTertiary = Color(0xFFDDEBF3),
+            tertiaryContainer = Color(0xFFDDEBF3),
+            onTertiaryContainer = Color(0xFF0A3953),
 
-            background = Color(0xFFFFFFFF),
-            onBackground = Color(0xFF2B2B2B),
+            background = Color(0xFFEEEEEE),
+            onBackground = Color(0xFF212121),
 
-            surface = Color(0xFF266C94),
-            onSurface = Color(0xFFFFFFFF),
+            surface = Color(0xFFFFFFFF),
+            onSurface = Color(0xFF212121),
 
             error = Color(0xFFB71C1C),
             onError = Color(0xFFFFFFFF),
@@ -49,25 +49,25 @@ object Colors {
     @Composable
     private fun getDarkColorScheme(): ColorScheme {
         return MaterialTheme.colorScheme.copy(
-            primary = Color(0xFF266C94),
-            onPrimary = Color(0xFFDDEBF3),
-            primaryContainer = Color(0xFFDDEBF3),
-            onPrimaryContainer = Color(0xFF0A3953),
+            primary = Color(0xFF537951),
+            onPrimary = Color(0xFFFFFFFF),
+            primaryContainer = Color(0xFFB8E6B5),
+            onPrimaryContainer = Color(0xFF325830),
 
             secondary = Color(0xFF756391),
             onSecondary = Color(0xFFDED4ED),
             secondaryContainer = Color(0xFFDED4ED),
             onSecondaryContainer = Color(0xFF473563),
 
-            tertiary = Color(0xFF537951),
-            onTertiary = Color(0xFFB8E6B5),
-            tertiaryContainer = Color(0xFFB8E6B5),
-            onTertiaryContainer = Color(0xFF325830),
+            tertiary = Color(0xFF266C94),
+            onTertiary = Color(0xFFDDEBF3),
+            tertiaryContainer = Color(0xFFDDEBF3),
+            onTertiaryContainer = Color(0xFF0A3953),
 
-            background = Color(0xFF2B2B2B),
+            background = Color(0xFF000000),
             onBackground = Color(0xFFFFFFFF),
 
-            surface = Color(0xFF266C94),
+            surface = Color(0xFF000000),
             onSurface = Color(0xFFFFFFFF),
 
             error = Color(0xFFB71C1C),

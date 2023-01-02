@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
@@ -13,12 +14,13 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.IntentConstants.extraFilePath
 import com.nonoka.nonorecorder.databinding.ActivityAudioPlayerBinding
 import java.io.File
 
 
-class AudioPlayerActivity : AppCompatActivity(), Player.Listener {
+class AudioPlayerActivity : AppCompatActivity(), Player.Listener, View.OnClickListener {
     private lateinit var exoPlayer: ExoPlayer
 
     private lateinit var viewBinding: ActivityAudioPlayerBinding
@@ -52,6 +54,21 @@ class AudioPlayerActivity : AppCompatActivity(), Player.Listener {
         exoPlayer.playWhenReady = true
 
         viewBinding.audioPlayer.player = exoPlayer
+        viewBinding.audioPlayer.showController()
+        viewBinding.buttonBack.setOnClickListener(this)
+    }
+
+    override fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.button_back -> onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        exoPlayer.stop()
+        exoPlayer.clearMediaItems()
+        exoPlayer.release()
     }
 
     private fun buildRenderersFactory(

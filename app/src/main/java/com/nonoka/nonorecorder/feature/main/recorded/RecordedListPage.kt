@@ -1,6 +1,7 @@
 package com.nonoka.nonorecorder.feature.main.recorded
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,10 +15,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,16 +26,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
+import com.nonoka.nonorecorder.constant.titleAppBar
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
@@ -52,8 +55,12 @@ fun RecordedListPage(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(text = "Recorded files")
+                        Text(
+                            text = "Recorded files",
+                            style = MaterialTheme.typography.titleAppBar.copy(color = LocalContentColor.current),
+                        )
                     },
+                    colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
             },
         ) {
@@ -122,18 +129,19 @@ private fun RecordedList(
 
 @Composable
 private fun RecordedFile(onStartPlaying: (String) -> Unit, recordedFile: RecordedFileUiModel) {
-    Card(
+    Box(
         modifier = Modifier
+            .fillMaxWidth()
             .padding(Dimens.mediumSpace)
-            .height(136.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimens.mediumSpace),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            .clip(
+                shape = RoundedCornerShape(Dimens.normalCornersRadius)
+            )
     ) {
         Column(
             modifier = Modifier
-                .padding(Dimens.mediumSpace)
-                .wrapContentHeight()
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .background(color = MaterialTheme.colorScheme.surface)
+                .padding(Dimens.mediumSpace),
         ) {
             Text(
                 text = recordedFile.name,
@@ -175,7 +183,7 @@ private fun RecordedFile(onStartPlaying: (String) -> Unit, recordedFile: Recorde
                         Icon(
                             painter = painterResource(id = R.drawable.ic_edit_solid_24dp),
                             contentDescription = "Edit",
-                            tint = MaterialTheme.colorScheme.secondary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .width(Dimens.normalIconSize)
                                 .height(Dimens.normalIconSize)
@@ -190,7 +198,7 @@ private fun RecordedFile(onStartPlaying: (String) -> Unit, recordedFile: Recorde
                         Icon(
                             painter = painterResource(id = R.drawable.ic_trash_solid_24dp),
                             contentDescription = "Delete",
-                            tint = MaterialTheme.colorScheme.secondary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .width(Dimens.normalIconSize)
                                 .height(Dimens.normalIconSize)
@@ -219,20 +227,20 @@ private fun RecordedFile(onStartPlaying: (String) -> Unit, recordedFile: Recorde
 
 @Composable
 private fun BrokenRecordedFile(recordedFile: BrokenRecordedFileUiModel) {
-    Card(
+    Box(
         modifier = Modifier
+            .fillMaxWidth()
             .padding(Dimens.mediumSpace)
-            .height(136.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimens.mediumSpace),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            .clip(
+                shape = RoundedCornerShape(Dimens.normalCornersRadius)
+            )
     ) {
         Column(
             modifier = Modifier
-                .padding(Dimens.mediumSpace)
-                .wrapContentHeight()
-                .fillMaxWidth(),
-
-            ) {
+                .fillMaxWidth()
+                .background(color = MaterialTheme.colorScheme.surface)
+                .padding(Dimens.mediumSpace),
+        ) {
             Text(
                 text = recordedFile.name,
                 style = MaterialTheme.typography.bodyLarge,
@@ -278,7 +286,7 @@ private fun BrokenRecordedFile(recordedFile: BrokenRecordedFileUiModel) {
                             .height(Dimens.extraMediumIconSize)
                     )
 
-                    Box(modifier = Modifier.width(Dimens.extraSmallSpace))
+                    Box(modifier = Modifier.width(Dimens.smallSpace))
 
                     Text(
                         text = "Broken file",

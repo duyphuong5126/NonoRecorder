@@ -4,30 +4,54 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:theme="@style/Theme.NonoRecorder.Player"
     tools:context=".feature.player.AudioPlayerActivity">
 
     <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/audio_player"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:controller_layout_id="@layout/layout_audio_player" />
+        app:auto_show="true"
+        app:controller_layout_id="@layout/layout_audio_player"
+        app:hide_on_touch="false"
+        app:show_timeout="0"
+        app:shutter_background_color="@color/white" />
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:focusableInTouchMode="false"
-        android:gravity="center"
         android:paddingTop="@dimen/big_space"
         android:paddingBottom="228dp">
+
+        <ImageButton
+            android:id="@+id/button_back"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:adjustViewBounds="true"
+            android:background="@color/transparency"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:padding="@dimen/normal_space"
+            android:src="@drawable/ic_back_solid_24dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/playerControlComponentColor" />
 
         <TextView
             android:id="@+id/track_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:drawablePadding="@dimen/big_space"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/white"
+            android:textColor="@color/gray_900"
+            app:drawableTint="?attr/playerDefaultCoverTint"
+            app:drawableTopCompat="@drawable/ic_file_audio_solid"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             tools:text="Track title" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

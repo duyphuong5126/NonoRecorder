@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="bottom"
-    android:background="@color/black"
+    android:background="@color/transparency"
     android:layoutDirection="ltr"
     android:orientation="vertical"
     android:paddingStart="@dimen/normal_space"
@@ -18,10 +18,15 @@
         android:layout_marginTop="@dimen/small_space"
         android:orientation="vertical">
 
-        <View
-            android:id="@id/exo_progress_placeholder"
+        <com.google.android.exoplayer2.ui.DefaultTimeBar
+            android:id="@id/exo_progress"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:buffered_color="@color/gray_200"
+            app:played_color="@color/gray_700"
+            app:scrubber_drawable="@drawable/ic_circle_solid"
+            app:unplayed_color="@color/gray_200" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -35,9 +40,9 @@
                 android:paddingLeft="@dimen/small_space"
                 android:paddingRight="@dimen/small_space"
                 android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="@color/white"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="?attr/playerControlComponentColor" />
 
             <TextView
                 android:id="@id/exo_duration"
@@ -47,9 +52,9 @@
                 android:paddingLeft="@dimen/small_space"
                 android:paddingRight="@dimen/small_space"
                 android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="@color/white"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="?attr/playerControlComponentColor" />
 
             <FrameLayout
                 android:id="@+id/exo_fullscreen_button"
@@ -68,7 +73,7 @@
                     android:adjustViewBounds="true"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_expand_solid_24dp"
-                    app:tint="@color/white"
+                    app:tint="?attr/playerControlComponentColor"
                     tools:ignore="ContentDescription" />
 
             </FrameLayout>
@@ -91,7 +96,7 @@
             app:layout_constraintEnd_toStartOf="@id/exo_rew"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white"
+            app:tint="?attr/playerControlComponentColor"
             tools:ignore="ContentDescription" />
 
         <ImageButton
@@ -101,7 +106,7 @@
             app:layout_constraintEnd_toStartOf="@id/exo_repeat_toggle"
             app:layout_constraintStart_toEndOf="@id/exo_prev"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white"
+            app:tint="?attr/playerControlComponentColor"
             tools:ignore="ContentDescription" />
 
         <ImageButton
@@ -111,7 +116,7 @@
             app:layout_constraintEnd_toStartOf="@id/exo_play"
             app:layout_constraintStart_toEndOf="@id/exo_rew"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white"
+            app:tint="?attr/playerControlComponentColor"
             tools:ignore="ContentDescription" />
 
         <ImageButton
@@ -121,7 +126,7 @@
             app:layout_constraintEnd_toStartOf="@id/exo_pause"
             app:layout_constraintStart_toEndOf="@id/exo_repeat_toggle"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white"
+            app:tint="?attr/playerControlComponentColor"
             tools:ignore="ContentDescription" />
 
         <ImageButton
@@ -131,7 +136,7 @@
             app:layout_constraintEnd_toStartOf="@id/exo_ffwd"
             app:layout_constraintStart_toEndOf="@id/exo_play"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white"
+            app:tint="?attr/playerControlComponentColor"
             tools:ignore="ContentDescription" />
 
         <ImageButton
@@ -141,7 +146,7 @@
             app:layout_constraintEnd_toStartOf="@id/exo_next"
             app:layout_constraintStart_toEndOf="@id/exo_pause"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white"
+            app:tint="?attr/playerControlComponentColor"
             tools:ignore="ContentDescription" />
 
         <ImageButton
@@ -151,7 +156,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/exo_ffwd"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white"
+            app:tint="?attr/playerControlComponentColor"
             tools:ignore="ContentDescription" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
