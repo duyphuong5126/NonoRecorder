@@ -154,7 +154,7 @@ class MainActivity : AppCompatActivity() {
                                             text = route.label,
                                             style = MaterialTheme.typography.bodySmall,
                                             color = if (isSelected) LocalContentColor.current else LocalContentColor.current.copy(
-                                                alpha = ContentAlpha.medium
+                                                alpha = ContentAlpha.disabled
                                             )
                                         )
                                     },
@@ -183,6 +183,9 @@ class MainActivity : AppCompatActivity() {
                                         )
                                     },
                                     selectedContentColor = MaterialTheme.colorScheme.onSurface,
+                                    unselectedContentColor = MaterialTheme.colorScheme.onSurface.copy(
+                                        alpha = ContentAlpha.disabled
+                                    )
                                 )
                             }
                         }

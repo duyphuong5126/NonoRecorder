@@ -20,5 +20,10 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="playerDefaultCoverTint">@color/gray_500</item>
         <item name="playerControlComponentColor">@color/gray_900</item>
+        <item name="backgroundColor">@color/white</item>
+        <item name="buffered_color">@color/gray_200</item>
+        <item name="played_color">@color/gray_700</item>
+        <item name="scrubber_drawable">@drawable/ic_circle_solid_gray_24dp</item>
+        <item name="unplayed_color">@color/gray_200</item>
     </style>
 </resources>

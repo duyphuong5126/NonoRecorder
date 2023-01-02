@@ -72,7 +72,8 @@ class AudioPlayerActivity : AppCompatActivity(), Player.Listener, View.OnClickLi
     }
 
     private fun buildRenderersFactory(
-        context: Context, preferExtensionRenderer: Boolean
+        context: Context,
+        preferExtensionRenderer: Boolean
     ): RenderersFactory {
         val extensionRendererMode = if (preferExtensionRenderer) {
             EXTENSION_RENDERER_MODE_PREFER

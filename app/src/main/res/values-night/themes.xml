@@ -16,7 +16,12 @@
     </style>
 
     <style name="Theme.NonoRecorder.Player" parent="Theme.NonoRecorder">
-        <item name="playerDefaultCoverTint">@color/white</item>
+        <item name="playerDefaultCoverTint">@color/gray_500</item>
         <item name="playerControlComponentColor">@color/white</item>
+        <item name="backgroundColor">@color/black</item>
+        <item name="buffered_color">@color/gray_600</item>
+        <item name="played_color">@color/white</item>
+        <item name="scrubber_drawable">@drawable/ic_circle_solid_white_24dp</item>
+        <item name="unplayed_color">@color/gray_200</item>
     </style>
 </resources>

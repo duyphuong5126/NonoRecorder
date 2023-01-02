@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.LocalContentColor
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -50,10 +50,13 @@ fun HomePage(
                     title = {
                         Text(
                             text = "Recording permissions",
-                            style = MaterialTheme.typography.titleAppBar.copy(color = LocalContentColor.current),
+                            style = MaterialTheme.typography.titleAppBar,
                         )
                     },
-                    colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                    colors = TopAppBarDefaults.smallTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    ),
                 )
             },
         ) {
@@ -74,12 +77,22 @@ fun HomePage(
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_circle_check_solid_24dp),
-                            contentDescription = "All set icon",
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                            modifier = Modifier.size(Dimens.largeIconSize)
-                        )
+                        Box(
+                            modifier = Modifier.wrapContentSize()
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_circle_solid_white_24dp),
+                                contentDescription = "All set icon background",
+                                modifier = Modifier.size(Dimens.largeIconSize)
+                            )
+
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_circle_check_solid_24dp),
+                                contentDescription = "All set icon",
+                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                                modifier = Modifier.size(Dimens.largeIconSize)
+                            )
+                        }
 
                         Box(modifier = Modifier.height(Dimens.mediumSpace))
 
@@ -105,12 +118,21 @@ fun HomePage(
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_info_solid_24dp),
-                            contentDescription = "Permissions information",
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
-                            modifier = Modifier.size(Dimens.largeIconSize)
-                        )
+                        Box(
+                            modifier = Modifier.wrapContentSize()
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_circle_solid_white_24dp),
+                                contentDescription = "All set icon background",
+                                modifier = Modifier.size(Dimens.largeIconSize)
+                            )
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_info_solid_24dp),
+                                contentDescription = "Permissions information",
+                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                                modifier = Modifier.size(Dimens.largeIconSize)
+                            )
+                        }
 
                         Box(modifier = Modifier.height(Dimens.mediumSpace))
 
@@ -183,7 +205,8 @@ fun HomePage(
                             } else {
                                 Image(
                                     painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
-                                    contentDescription = "Appear on top permission enabled"
+                                    contentDescription = "Appear on top permission enabled",
+                                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
                                 )
                             }
                         }
@@ -241,6 +264,7 @@ fun HomePage(
                                 Image(
                                     painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
                                     contentDescription = "Recording permission enabled",
+                                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
                                 )
                             }
                         }
@@ -300,7 +324,7 @@ fun HomePage(
                                     Image(
                                         painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
                                         contentDescription = "Accessibility permission enabled",
-                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
+                                        colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
                                     )
                                 }
                             }

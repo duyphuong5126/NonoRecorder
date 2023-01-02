@@ -22,11 +22,7 @@
             android:id="@id/exo_progress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            app:buffered_color="@color/gray_200"
-            app:played_color="@color/gray_700"
-            app:scrubber_drawable="@drawable/ic_circle_solid"
-            app:unplayed_color="@color/gray_200" />
+            android:layout_gravity="center" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"

@@ -49,7 +49,7 @@ object Colors {
     @Composable
     private fun getDarkColorScheme(): ColorScheme {
         return MaterialTheme.colorScheme.copy(
-            primary = Color(0xFF537951),
+            primary = Color(0xFF66B362),
             onPrimary = Color(0xFFFFFFFF),
             primaryContainer = Color(0xFFB8E6B5),
             onPrimaryContainer = Color(0xFF325830),
@@ -67,10 +67,10 @@ object Colors {
             background = Color(0xFF000000),
             onBackground = Color(0xFFFFFFFF),
 
-            surface = Color(0xFF000000),
+            surface = Color(0xFF212121),
             onSurface = Color(0xFFFFFFFF),
 
-            error = Color(0xFFB71C1C),
+            error = Color(0xFFF55959),
             onError = Color(0xFFFFFFFF),
             errorContainer = Color(0xFFFFCDD2),
             onErrorContainer = Color(0xFFD32F2F),

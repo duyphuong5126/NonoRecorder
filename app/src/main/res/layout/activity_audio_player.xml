@@ -15,7 +15,7 @@
         app:controller_layout_id="@layout/layout_audio_player"
         app:hide_on_touch="false"
         app:show_timeout="0"
-        app:shutter_background_color="@color/white" />
+        app:shutter_background_color="?attr/backgroundColor" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:drawablePadding="@dimen/big_space"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/gray_900"
+            android:textColor="?attr/playerControlComponentColor"
             app:drawableTint="?attr/playerDefaultCoverTint"
             app:drawableTopCompat="@drawable/ic_file_audio_solid"
             app:layout_constraintBottom_toBottomOf="parent"
