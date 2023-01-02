@@ -41,8 +41,15 @@ class AudioCallRecorder : CallRecorder {
 
     private val dateFormat = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US)
 
+    override val isRecording: Boolean
+        get() = isRecordingAudio.get()
+
     override fun startCallRecording(context: Context) {
-        if (checkSelfPermission(context, RECORD_AUDIO) != PERMISSION_GRANTED) {
+        if (checkSelfPermission(
+                context,
+                RECORD_AUDIO
+            ) != PERMISSION_GRANTED || isRecordingAudio.get()
+        ) {
             return
         }
 
@@ -72,6 +79,9 @@ class AudioCallRecorder : CallRecorder {
     }
 
     override fun stopCallRecording(context: Context) {
+        if (!isRecordingAudio.get()) {
+            return
+        }
         audioRecorder?.stop()
         audioRecorder?.release()
         audioRecorder = null

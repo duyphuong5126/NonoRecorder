@@ -1,5 +1,6 @@
 package com.nonoka.nonorecorder
 
+import android.Manifest.permission.RECORD_AUDIO
 import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -9,17 +10,22 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.graphics.PixelFormat
 import android.media.AudioManager
 import android.os.Build
+import android.provider.Settings
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.nonoka.nonorecorder.recorder.AudioCallRecorder
 import com.nonoka.nonorecorder.recorder.CallRecorder
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -51,11 +57,59 @@ class CallRecordingService : AccessibilityService() {
                 )
             }
 
+    private val isRecordingPermissionGranted: Boolean
+        get() = ActivityCompat.checkSelfPermission(this, RECORD_AUDIO) == PERMISSION_GRANTED
+
+    private val isAccessibilitySettingsOn: Boolean
+        get() {
+            var accessibilityEnabled = 0
+            val packageName = packageName
+            val service = "$packageName/$packageName.${CallRecordingService::class.java.simpleName}"
+            Timber.d("service = $service")
+            val accessibilityFound = false
+            try {
+                accessibilityEnabled = Settings.Secure.getInt(
+                    applicationContext.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED
+                )
+                Timber.d("accessibilityEnabled = $accessibilityEnabled")
+            } catch (e: Settings.SettingNotFoundException) {
+                Timber.e("Error finding setting, default accessibility to not found: ${e.localizedMessage}")
+            }
+            val mStringColonSplitter = TextUtils.SimpleStringSplitter(':')
+            if (accessibilityEnabled == 1) {
+                Timber.d("***ACCESSIBILITY IS ENABLED*** -----------------")
+                val settingValue: String = Settings.Secure.getString(
+                    applicationContext.contentResolver,
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+                )
+                mStringColonSplitter.setString(settingValue)
+                while (mStringColonSplitter.hasNext()) {
+                    val accessibilityService = mStringColonSplitter.next()
+                    Timber.d("-------------- > accessibilityService :: $accessibilityService")
+                    if (accessibilityService.equals(service, ignoreCase = true)) {
+                        Timber.d("We've found the correct setting - accessibility is switched on!")
+                        return true
+                    }
+                }
+            } else {
+                Timber.d("***ACCESSIBILITY IS DISABLED***")
+            }
+            return accessibilityFound
+        }
+
+    private val arePermissionsReady: Boolean
+        get() =
+            Settings.canDrawOverlays(this@CallRecordingService) &&
+                    isRecordingPermissionGranted &&
+                    isAccessibilitySettingsOn
+
+    private val lastTimePermissionsReady = AtomicBoolean(false)
+
     @SuppressLint("RtlHardcoded")
     override fun onCreate() {
         super.onCreate()
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         Timber.i("start RecordingService")
+        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
         // Start listening to Audio mode change
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -100,16 +154,45 @@ class CallRecordingService : AccessibilityService() {
         params.gravity = Gravity.RIGHT or Gravity.TOP
         windowManager.addView(overlayLayout, params)
 
+        lastTimePermissionsReady.compareAndSet(false, arePermissionsReady)
+        val lastTimeReady = lastTimePermissionsReady.get()
         val notification: Notification =
             NotificationCompat.Builder(this, createNotificationChannel())
-                .setContentTitle(getText(R.string.waiting_for_call))
-                .setSmallIcon(R.drawable.ic_standby_24dp)
+                .setContentTitle(getText(if (lastTimeReady) R.string.waiting_for_call else R.string.permissions_not_enough_title))
+                .setSmallIcon(if (lastTimeReady) R.drawable.ic_standby_24dp else R.drawable.ic_info_24dp)
                 .setContentIntent(pendingIntent)
-                .setTicker(getText(R.string.waiting_for_call))
+                .setTicker(getText(if (lastTimeReady) R.string.waiting_for_call else R.string.permissions_not_enough_title))
                 .setOnlyAlertOnce(true)
+                .apply {
+                    if (!lastTimeReady) {
+                        setContentText(getString(R.string.permissions_not_enough_message))
+                    }
+                }
                 .build()
 
         startForeground(RECORDING_NOTIFICATION_ID, notification)
+
+        ioScope.launch {
+            doWhile(action = {
+                val permissionsReady = arePermissionsReady
+                if (permissionsReady != lastTimePermissionsReady.get()) {
+                    if (permissionsReady) {
+                        onPermissionReady()
+                    } else {
+                        if (callRecorder.isRecording) {
+                            callRecorder.stopCallRecording(this@CallRecordingService)
+                        }
+                        onPermissionRemoval()
+                    }
+                }
+                lastTimePermissionsReady.compareAndSet(
+                    lastTimePermissionsReady.get(),
+                    permissionsReady
+                )
+            }, checker = {
+                true
+            }, interval = PERMISSIONS_CHECK_INTERVAL)
+        }
 
         callRecorder = AudioCallRecorder()
 
@@ -360,14 +443,14 @@ class CallRecordingService : AccessibilityService() {
         when (newMode) {
             AudioManager.MODE_IN_CALL -> {
                 Timber.d("AudioMode>>> In a call")
-                if (audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) {
+                if ((audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) && arePermissionsReady) {
                     callRecorder.startCallRecording(this)
                     onStartRecording()
                 }
             }
             AudioManager.MODE_IN_COMMUNICATION -> {
                 Timber.d("AudioMode>>> In a VOIP call")
-                if (audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) {
+                if ((audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) && arePermissionsReady) {
                     callRecorder.startCallRecording(this)
                     onStartRecording()
                 }
@@ -432,11 +515,43 @@ class CallRecordingService : AccessibilityService() {
             }
     }
 
+    private fun onPermissionReady() {
+        NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle(getText(R.string.waiting_for_call))
+            .setSmallIcon(R.drawable.ic_standby_24dp)
+            .setContentIntent(pendingIntent)
+            .setTicker(getText(R.string.waiting_for_call))
+            .setOnlyAlertOnce(true)
+            .build()
+            .let {
+                val notificationManager =
+                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
+            }
+    }
+
+    private fun onPermissionRemoval() {
+        NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle(getText(R.string.permissions_not_enough_title))
+            .setContentText(getText(R.string.permissions_not_enough_message))
+            .setSmallIcon(R.drawable.ic_info_24dp)
+            .setContentIntent(pendingIntent)
+            .setTicker(getText(R.string.permissions_not_enough_title))
+            .setOnlyAlertOnce(true)
+            .build()
+            .let {
+                val notificationManager =
+                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
+            }
+    }
+
     companion object {
         private const val CHANNEL_ID = "RecordingChannel"
 
         private const val RECORDING_NOTIFICATION_ID = 11
 
         private const val AUDIO_MODE_CHECK_INTERVAL = 1000L
+        private const val PERMISSIONS_CHECK_INTERVAL = 5000L
     }
 }

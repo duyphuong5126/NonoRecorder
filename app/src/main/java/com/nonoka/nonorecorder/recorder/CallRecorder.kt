@@ -6,4 +6,5 @@ interface CallRecorder {
     fun startCallRecording(context: Context)
     fun stopCallRecording(context: Context)
     fun destroy()
+    val isRecording: Boolean
 }

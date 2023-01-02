@@ -109,6 +109,8 @@ class MainActivity : AppCompatActivity() {
             return accessibilityFound
         }
 
+    private val canDrawOverlays: Boolean get() = Settings.canDrawOverlays(this@MainActivity)
+
     private val recordingFinishedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == actionFinishedRecording) {
@@ -120,7 +122,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         homeViewModel.initPermission(
-            canDrawOverlay = Settings.canDrawOverlays(this@MainActivity),
+            canDrawOverlay = canDrawOverlays,
             canRecordAudio = isRecordingPermissionGranted,
             hasAccessibilityPermission = isAccessibilitySettingsOn
         )
@@ -232,7 +234,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        homeViewModel.accessibilityPermissionPermissionStateChange(isAccessibilitySettingsOn)
+        homeViewModel.initPermission(
+            canDrawOverlay = canDrawOverlays,
+            canRecordAudio = isRecordingPermissionGranted,
+            hasAccessibilityPermission = isAccessibilitySettingsOn
+        )
         recordedListViewModel.initialize(filesDir.absolutePath)
 
         registerReceiver(recordingFinishedReceiver, IntentFilter(actionFinishedRecording))
@@ -263,7 +269,9 @@ class MainActivity : AppCompatActivity() {
             MaterialAlertDialogBuilder(this).setTitle(R.string.permission_required_title)
                 .setMessage(R.string.record_audio_permission_required_message)
                 .setPositiveButton(R.string.action_yes) { _, _ ->
-                    handleAudioPermission()
+                    ActivityCompat.requestPermissions(
+                        this, arrayOf(RECORD_AUDIO), URGENT_AUDIO_PERMISSION_REQUEST_CODE
+                    )
                 }.setNegativeButton(R.string.action_no, null)
                 .show()
         } else {
@@ -282,5 +290,10 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val URGENT_AUDIO_PERMISSION_REQUEST_CODE = 3726
+
+        @JvmStatic
+        fun start(context: Context) {
+            context.startActivity(Intent(context, MainActivity::class.java))
+        }
     }
 }

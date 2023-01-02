@@ -10,6 +10,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -24,6 +25,11 @@ class VideoCallRecorder : CallRecorder {
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
     private val dateFormat = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US)
+
+    private val isRecordingAudio = AtomicBoolean(false)
+
+    override val isRecording: Boolean
+        get() = isRecordingAudio.get()
 
     override fun startCallRecording(context: Context) {
         @Suppress("DEPRECATION")
@@ -42,6 +48,7 @@ class VideoCallRecorder : CallRecorder {
         try {
             videoRecorder?.prepare()
             videoRecorder?.start()
+            isRecordingAudio.compareAndSet(false, true)
             videoRecorder?.setOnInfoListener { _, what, extra ->
                 val whatMessage = when (what) {
                     MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED -> "Max duration reached"
@@ -60,6 +67,7 @@ class VideoCallRecorder : CallRecorder {
         videoRecorder?.stop()
         videoRecorder?.release()
         videoRecorder = null
+        isRecordingAudio.compareAndSet(true, false)
         Timber.d("recording stopped")
 
         ioScope.launch(Dispatchers.IO) {
