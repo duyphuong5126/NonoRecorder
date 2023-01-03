@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nonoka.nonorecorder.constant.FileConstants.recordedFolder
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
@@ -33,7 +34,7 @@ class RecordedListViewModel : ViewModel() {
     private val durationFormat = "HH:mm:ss"
 
     fun initialize(generalFileDirPath: String) {
-        refresh(File(generalFileDirPath, "recorded").absolutePath)
+        refresh(File(generalFileDirPath, recordedFolder).absolutePath)
     }
 
     fun refresh(recordedDirectoryPath: String) {

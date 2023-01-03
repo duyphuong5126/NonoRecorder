@@ -8,6 +8,9 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder.AudioSource.VOICE_RECOGNITION
 import androidx.core.content.ContextCompat.checkSelfPermission
+import com.nonoka.nonorecorder.constant.FileConstants.pcmFileExt
+import com.nonoka.nonorecorder.constant.FileConstants.recordedFolder
+import com.nonoka.nonorecorder.constant.FileConstants.wavFileExt
 import com.nonoka.nonorecorder.constant.IntentConstants
 import java.io.File
 import java.io.FileNotFoundException
@@ -104,11 +107,11 @@ class AudioCallRecorder : CallRecorder {
     }
 
     private fun initAudioOutputFile(context: Context) {
-        val recordDir = File(context.filesDir.absolutePath, "recorded")
+        val recordDir = File(context.filesDir.absolutePath, recordedFolder)
         if (!recordDir.exists()) {
             recordDir.mkdir()
         }
-        recordedAudioFile = File(recordDir, "${dateFormat.format(Date())}.pcm")
+        recordedAudioFile = File(recordDir, "${dateFormat.format(Date())}$pcmFileExt")
         recordedAudioFile.createNewFile()
     }
 
@@ -138,12 +141,12 @@ class AudioCallRecorder : CallRecorder {
 
     private fun convertPcmToWav(context: Context) {
         try {
-            val recordDir = File(context.filesDir.absolutePath, "recorded")
+            val recordDir = File(context.filesDir.absolutePath, recordedFolder)
             if (!recordDir.exists()) {
                 recordDir.mkdir()
             }
             val wawOutputFile =
-                File(recordDir, "${recordedAudioFile.name.replace(".pcm", "")}.wav")
+                File(recordDir, recordedAudioFile.name.replace(pcmFileExt, wavFileExt))
             AudioConverter.pcm2Wav(
                 input = recordedAudioFile,
                 output = wawOutputFile,

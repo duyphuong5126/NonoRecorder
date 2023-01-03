@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
 import android.os.Build
+import com.nonoka.nonorecorder.constant.FileConstants.mp4FileExt
+import com.nonoka.nonorecorder.constant.FileConstants.recordedFolder
 import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
 import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
 import java.io.File
@@ -83,11 +85,11 @@ class VideoCallRecorder : CallRecorder {
     }
 
     private fun initMediaOutputFile(context: Context) {
-        val recordDir = File(context.filesDir.absolutePath, "recorded")
+        val recordDir = File(context.filesDir.absolutePath, recordedFolder)
         if (!recordDir.exists()) {
             recordDir.mkdir()
         }
-        recordedVideo = File(recordDir, "${dateFormat.format(Date())}.mp4")
+        recordedVideo = File(recordDir, "${dateFormat.format(Date())}$mp4FileExt")
         recordedVideo.createNewFile()
     }
 
