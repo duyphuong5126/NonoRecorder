@@ -430,7 +430,7 @@ class CallRecordingService : AccessibilityService() {
                 CHANNEL_ID,
                 CHANNEL_ID, NotificationManager.IMPORTANCE_NONE
             )
-            channel.lightColor = ContextCompat.getColor(this, R.color.primary)
+            channel.lightColor = ContextCompat.getColor(this, R.color.greenPrimary)
             channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
             val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             service.createNotificationChannel(channel)

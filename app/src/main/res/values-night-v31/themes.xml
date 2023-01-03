@@ -3,12 +3,12 @@
 
     <style name="Theme.NonoRecorder" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryVariant">@color/primary_container</item>
+        <item name="colorPrimary">@color/greenPrimaryDark</item>
+        <item name="colorPrimaryVariant">@color/greenPrimaryContainerDark</item>
         <item name="colorOnPrimary">@color/black</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/secondary</item>
-        <item name="colorSecondaryVariant">@color/secondary_container</item>
+        <item name="colorSecondary">@color/purpleSecondaryDark</item>
+        <item name="colorSecondaryVariant">@color/purpleSecondaryContainerDark</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/black</item>

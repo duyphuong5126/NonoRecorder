@@ -10,10 +10,15 @@
     <color name="white">#FFFFFFFF</color>
     <color name="transparency">#00000000</color>
 
-    <color name="primary">#FF266C94</color>
-    <color name="primary_container">#FF0A3953</color>
-    <color name="secondary">#FF756391</color>
-    <color name="secondary_container">#FF473563</color>
+    <color name="greenPrimary">#FF537951</color>
+    <color name="greenPrimaryContainer">#FF325830</color>
+    <color name="greenPrimaryDark">#FF66B362</color>
+    <color name="greenPrimaryContainerDark">#FF325830</color>
+
+    <color name="purpleSecondary">#FF756391</color>
+    <color name="purpleSecondaryContainer">#FF473563</color>
+    <color name="purpleSecondaryDark">#FF756391</color>
+    <color name="purpleSecondaryContainerDark">#FF473563</color>
 
     <color name="gray_200">#FFEEEEEE</color>
     <color name="gray_500">#FF9E9E9E</color>
