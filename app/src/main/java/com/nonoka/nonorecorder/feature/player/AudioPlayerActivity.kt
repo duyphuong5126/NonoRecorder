@@ -15,7 +15,8 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.nonoka.nonorecorder.R
-import com.nonoka.nonorecorder.constant.IntentConstants.extraFilePath
+import com.nonoka.nonorecorder.constant.IntentConstants.extraFilePaths
+import com.nonoka.nonorecorder.constant.IntentConstants.extraStartPosition
 import com.nonoka.nonorecorder.databinding.ActivityAudioPlayerBinding
 import java.io.File
 
@@ -31,11 +32,15 @@ class AudioPlayerActivity : AppCompatActivity(), Player.Listener, View.OnClickLi
 
         setContentView(viewBinding.root)
 
-        val mediaUri: Uri = intent.getStringExtra(extraFilePath)?.let {
+        val mediaItemList: List<MediaItem> = intent.getStringArrayExtra(extraFilePaths)?.map {
             val audioFile = File(it)
             viewBinding.trackTitle.text = audioFile.nameWithoutExtension
-            Uri.fromFile(audioFile)
+            MediaItem.fromUri(Uri.fromFile(audioFile))
         } ?: return
+        val startPosition = intent.getIntExtra(extraStartPosition, -1)
+        if (mediaItemList.isEmpty() || startPosition < 0) {
+            return
+        }
 
         val renderersFactory = buildRenderersFactory(applicationContext, true)
         val trackSelector = DefaultTrackSelector(applicationContext)
@@ -48,8 +53,7 @@ class AudioPlayerActivity : AppCompatActivity(), Player.Listener, View.OnClickLi
                 playWhenReady = false
             }
 
-        val mediaItem = MediaItem.fromUri(mediaUri)
-        exoPlayer.setMediaItem(mediaItem)
+        exoPlayer.setMediaItems(mediaItemList, startPosition, 0)
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
 
@@ -88,9 +92,10 @@ class AudioPlayerActivity : AppCompatActivity(), Player.Listener, View.OnClickLi
 
     companion object {
         @JvmStatic
-        fun start(context: Context, filePath: String) {
+        fun start(context: Context, filePathList: List<String>, startPosition: Int) {
             context.startActivity(Intent(context, AudioPlayerActivity::class.java).apply {
-                putExtra(extraFilePath, filePath)
+                putExtra(extraFilePaths, filePathList.toTypedArray())
+                putExtra(extraStartPosition, startPosition)
             })
         }
     }

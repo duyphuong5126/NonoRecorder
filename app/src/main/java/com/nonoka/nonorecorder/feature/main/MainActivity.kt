@@ -30,6 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -48,6 +51,7 @@ import com.nonoka.nonorecorder.feature.main.home.HomeViewModel
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListPage
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListViewModel
 import com.nonoka.nonorecorder.feature.player.AudioPlayerActivity
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,6 +130,14 @@ class MainActivity : AppCompatActivity() {
             canRecordAudio = isRecordingPermissionGranted,
             hasAccessibilityPermission = isAccessibilitySettingsOn
         )
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                recordedListViewModel.startPlayingList.collect {
+                    AudioPlayerActivity.start(this@MainActivity, it.filePathList, it.startPosition)
+                }
+            }
+        }
+
         val defaultNavigationRoutes =
             arrayOf(
                 MainNavigationRoute.HomeRouteMain(label = "Home"),
@@ -221,8 +233,8 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         composable(recordedListRouteName) {
-                            RecordedListPage(recordedListViewModel) { filePath ->
-                                AudioPlayerActivity.start(this@MainActivity, filePath)
+                            RecordedListPage(recordedListViewModel) { file ->
+                                recordedListViewModel.generatePlayingList(file)
                             }
                         }
                     }

@@ -10,10 +10,13 @@ import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.BrokenRecordedFileUiModel
+import com.nonoka.nonorecorder.feature.main.recorded.uimodel.StartPlayingList
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import org.apache.commons.lang3.time.DurationFormatUtils
 import timber.log.Timber
@@ -21,6 +24,9 @@ import timber.log.Timber
 class RecordedListViewModel : ViewModel() {
     var recordedList by mutableStateOf<List<RecordedItem>>(emptyList())
         private set
+
+    private val _startPlayingList: MutableSharedFlow<StartPlayingList> = MutableSharedFlow()
+    val startPlayingList: SharedFlow<StartPlayingList> = _startPlayingList
 
     private val dateFormat = SimpleDateFormat("E, MMM dd yyyy", Locale.getDefault())
     private val dateTimeFormat = SimpleDateFormat("E, MMM dd yyyy HH:mm:ss", Locale.getDefault())
@@ -31,7 +37,6 @@ class RecordedListViewModel : ViewModel() {
     }
 
     fun refresh(recordedDirectoryPath: String) {
-        Timber.d("Test>>> recordedDirectoryPath=$recordedDirectoryPath")
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 val recordedDirectory = File(recordedDirectoryPath)
@@ -84,5 +89,25 @@ class RecordedListViewModel : ViewModel() {
         } catch (error: SecurityException) {
             Timber.e(error)
         }
+    }
+
+    fun generatePlayingList(startFromItem: RecordedFileUiModel) {
+        viewModelScope.launch(Dispatchers.Default) {
+            recordedList
+                .filterIsInstance(RecordedFileUiModel::class.java)
+                .map(RecordedFileUiModel::filePath)
+                .let {
+                    val startPosition = it.indexOfFirst { filePath ->
+                        filePath == startFromItem.filePath
+                    }
+                    _startPlayingList.emit(
+                        StartPlayingList(
+                            it,
+                            if (startPosition >= 0) startPosition else 0
+                        )
+                    )
+                }
+        }
+
     }
 }
