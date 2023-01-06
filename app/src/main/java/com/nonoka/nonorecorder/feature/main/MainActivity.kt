@@ -10,9 +10,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -41,11 +43,12 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.nonoka.nonorecorder.CallRecordingService
 import com.nonoka.nonorecorder.R
-import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
-import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
 import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
+import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
+import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
 import com.nonoka.nonorecorder.constant.brandTypography
+import com.nonoka.nonorecorder.databinding.LayoutDialogInputBinding
 import com.nonoka.nonorecorder.feature.main.home.HomePage
 import com.nonoka.nonorecorder.feature.main.home.HomeViewModel
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListPage
@@ -134,6 +137,11 @@ class MainActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 recordedListViewModel.startPlayingList.collect {
                     AudioPlayerActivity.start(this@MainActivity, it.filePathList, it.startPosition)
+                }
+            }
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                recordedListViewModel.toastMessage.collect {
+                    Toast.makeText(this@MainActivity, it, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -233,9 +241,22 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         composable(recordedListRouteName) {
-                            RecordedListPage(recordedListViewModel) { file ->
-                                recordedListViewModel.generatePlayingList(file)
-                            }
+                            RecordedListPage(
+                                recordedListViewModel,
+                                onStartPlaying = { file ->
+                                    recordedListViewModel.generatePlayingList(file)
+                                },
+                                onDeleteFile = { filePath ->
+                                    MaterialAlertDialogBuilder(this@MainActivity).setTitle(R.string.delete_file_title)
+                                        .setMessage(R.string.delete_file_message)
+                                        .setPositiveButton(
+                                            R.string.action_yes
+                                        ) { _, _ ->
+                                            recordedListViewModel.deleteFile(filePath)
+                                        }.setNegativeButton(R.string.action_no, null).show()
+                                },
+                                onRenameFile = this@MainActivity::onRenameFile,
+                            )
                         }
                     }
                 }
@@ -298,6 +319,36 @@ class MainActivity : AppCompatActivity() {
             is MainNavigationRoute.HomeRouteMain -> R.drawable.ic_home_solid_24dp
             is MainNavigationRoute.RecordedListRouteMain -> R.drawable.ic_list_solid_24dp
         }
+    }
+
+    private fun onRenameFile(filePath: String, currentFileName: String) {
+        val viewBinding = LayoutDialogInputBinding.inflate(layoutInflater)
+        viewBinding.inputText.setText(currentFileName)
+        val dialog = MaterialAlertDialogBuilder(this@MainActivity)
+            .setTitle(R.string.rename_file_title)
+            .setView(viewBinding.root)
+            .setNegativeButton(R.string.action_cancel, null)
+            .setPositiveButton(R.string.action_rename, null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val newName = viewBinding.inputText.text.toString()
+                if (newName.isBlank()) {
+                    Toast.makeText(this@MainActivity, "Name cannot be blank", Toast.LENGTH_SHORT)
+                        .show()
+                    viewBinding.inputLayout.error = "File name cannot be blank"
+                } else {
+                    recordedListViewModel.renameFile(filePath, newName)
+                    dialog.dismiss()
+                }
+            }
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
     }
 
     companion object {

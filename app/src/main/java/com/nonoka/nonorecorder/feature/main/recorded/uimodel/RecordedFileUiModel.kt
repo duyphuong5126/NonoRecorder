@@ -7,6 +7,7 @@ sealed class RecordedItem {
     data class RecordedFileUiModel(
         val id: Int,
         val name: String,
+        val nameWithoutExtension: String,
         val duration: String,
         val lastModified: String,
         val filePath: String
@@ -15,6 +16,7 @@ sealed class RecordedItem {
     data class BrokenRecordedFileUiModel(
         val id: Int,
         val name: String,
+        val filePath: String,
         val lastModified: String
     ) : RecordedItem()
 }

@@ -38,7 +38,6 @@ import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.titleAppBar
-import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.BrokenRecordedFileUiModel
@@ -48,7 +47,9 @@ import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.Broken
 @Composable
 fun RecordedListPage(
     recordedListViewModel: RecordedListViewModel,
-    onStartPlaying: (RecordedFileUiModel) -> Unit
+    onStartPlaying: (RecordedFileUiModel) -> Unit,
+    onDeleteFile: (filePath: String) -> Unit,
+    onRenameFile: (filePath: String, currentFileName: String) -> Unit,
 ) {
     MaterialTheme(colorScheme = Colors.getColorScheme()) {
         Scaffold(
@@ -69,9 +70,11 @@ fun RecordedListPage(
         ) {
             if (recordedListViewModel.recordedList.isNotEmpty()) {
                 RecordedList(
-                    list = recordedListViewModel.recordedList,
+                    recordedListViewModel = recordedListViewModel,
                     paddingValues = it,
-                    onStartPlaying = onStartPlaying
+                    onStartPlaying = onStartPlaying,
+                    onDeleteFile = onDeleteFile,
+                    onRenameFile = onRenameFile
                 )
             } else {
                 EmptyRecordedList(paddingValues = it)
@@ -104,23 +107,30 @@ private fun EmptyRecordedList(paddingValues: PaddingValues) {
 
 @Composable
 private fun RecordedList(
+    recordedListViewModel: RecordedListViewModel,
     onStartPlaying: (RecordedFileUiModel) -> Unit,
-    list: List<RecordedItem>,
+    onDeleteFile: (String) -> Unit,
+    onRenameFile: (filePath: String, currentName: String) -> Unit,
     paddingValues: PaddingValues
 ) {
     LazyColumn(
         modifier = Modifier.padding(paddingValues), verticalArrangement = Arrangement.Top,
     ) {
-        items(items = list, key = { item ->
+        items(items = recordedListViewModel.recordedList, key = { item ->
             item.hashCode()
         }) { recordedItem ->
             when (recordedItem) {
                 is RecordedFileUiModel -> RecordedFile(
                     recordedFile = recordedItem,
-                    onStartPlaying = onStartPlaying
+                    onStartPlaying = onStartPlaying,
+                    onDeleteFile = onDeleteFile,
+                    onRenameFile = onRenameFile
                 )
                 is RecordedDate -> RecordedDateItem(recordedDate = recordedItem)
-                is BrokenRecordedFileUiModel -> BrokenRecordedFile(recordedFile = recordedItem)
+                is BrokenRecordedFileUiModel -> BrokenRecordedFile(
+                    recordedFile = recordedItem,
+                    onDeleteFile = onDeleteFile
+                )
             }
         }
 
@@ -134,6 +144,8 @@ private fun RecordedList(
 private fun RecordedFile(
     onStartPlaying: (RecordedFileUiModel) -> Unit,
     recordedFile: RecordedFileUiModel,
+    onDeleteFile: (String) -> Unit,
+    onRenameFile: (filePath: String, currentName: String) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -184,7 +196,7 @@ private fun RecordedFile(
             ) {
                 Row {
                     IconButton(onClick = {
-
+                        onRenameFile(recordedFile.filePath, recordedFile.nameWithoutExtension)
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_edit_solid_24dp),
@@ -197,7 +209,7 @@ private fun RecordedFile(
                     Box(modifier = Modifier.height(Dimens.mediumSpace))
 
                     IconButton(onClick = {
-
+                        onDeleteFile(recordedFile.filePath)
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_trash_solid_24dp),
@@ -228,7 +240,10 @@ private fun RecordedFile(
 }
 
 @Composable
-private fun BrokenRecordedFile(recordedFile: BrokenRecordedFileUiModel) {
+private fun BrokenRecordedFile(
+    recordedFile: BrokenRecordedFileUiModel,
+    onDeleteFile: (String) -> Unit,
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -298,7 +313,9 @@ private fun BrokenRecordedFile(recordedFile: BrokenRecordedFileUiModel) {
                 }
 
                 Button(
-                    onClick = {},
+                    onClick = {
+                        onDeleteFile(recordedFile.filePath)
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
                     Text(text = "Delete")

@@ -11,7 +11,7 @@ import com.google.android.exoplayer2.DefaultRenderersFactory.EXTENSION_RENDERER_
 import com.google.android.exoplayer2.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.Player.Listener
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.nonoka.nonorecorder.R
@@ -21,7 +21,7 @@ import com.nonoka.nonorecorder.databinding.ActivityAudioPlayerBinding
 import java.io.File
 
 
-class AudioPlayerActivity : AppCompatActivity(), Player.Listener, View.OnClickListener {
+class AudioPlayerActivity : AppCompatActivity(), Listener, View.OnClickListener {
     private lateinit var exoPlayer: ExoPlayer
 
     private lateinit var viewBinding: ActivityAudioPlayerBinding
@@ -33,9 +33,7 @@ class AudioPlayerActivity : AppCompatActivity(), Player.Listener, View.OnClickLi
         setContentView(viewBinding.root)
 
         val mediaItemList: List<MediaItem> = intent.getStringArrayExtra(extraFilePaths)?.map {
-            val audioFile = File(it)
-            viewBinding.trackTitle.text = audioFile.nameWithoutExtension
-            MediaItem.fromUri(Uri.fromFile(audioFile))
+            MediaItem.fromUri(Uri.fromFile(File(it)))
         } ?: return
         val startPosition = intent.getIntExtra(extraStartPosition, -1)
         if (mediaItemList.isEmpty() || startPosition < 0) {
@@ -60,6 +58,12 @@ class AudioPlayerActivity : AppCompatActivity(), Player.Listener, View.OnClickLi
         viewBinding.audioPlayer.player = exoPlayer
         viewBinding.audioPlayer.showController()
         viewBinding.buttonBack.setOnClickListener(this)
+        exoPlayer.addListener(object : Listener {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                super.onMediaItemTransition(mediaItem, reason)
+                viewBinding.trackTitle.text = mediaItem?.mediaMetadata?.title ?: ""
+            }
+        })
     }
 
     override fun onClick(v: View?) {

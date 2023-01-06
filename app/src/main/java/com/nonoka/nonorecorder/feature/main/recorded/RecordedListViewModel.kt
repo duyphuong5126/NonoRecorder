@@ -1,9 +1,7 @@
 package com.nonoka.nonorecorder.feature.main.recorded
 
 import android.media.MediaMetadataRetriever
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nonoka.nonorecorder.constant.FileConstants.recordedFolder
@@ -23,11 +21,13 @@ import org.apache.commons.lang3.time.DurationFormatUtils
 import timber.log.Timber
 
 class RecordedListViewModel : ViewModel() {
-    var recordedList by mutableStateOf<List<RecordedItem>>(emptyList())
-        private set
+    val recordedList = mutableStateListOf<RecordedItem>()
 
     private val _startPlayingList: MutableSharedFlow<StartPlayingList> = MutableSharedFlow()
     val startPlayingList: SharedFlow<StartPlayingList> = _startPlayingList
+
+    private val _toastMessage: MutableSharedFlow<String> = MutableSharedFlow()
+    val toastMessage: SharedFlow<String> = _toastMessage
 
     private val dateFormat = SimpleDateFormat("E, MMM dd yyyy", Locale.getDefault())
     private val dateTimeFormat = SimpleDateFormat("E, MMM dd yyyy HH:mm:ss", Locale.getDefault())
@@ -72,7 +72,8 @@ class RecordedListViewModel : ViewModel() {
                                     durationFormat
                                 ),
                                 lastModified = dateTimeFormat.format(file.lastModified()),
-                                filePath = file.absolutePath
+                                filePath = file.absolutePath,
+                                nameWithoutExtension = file.nameWithoutExtension,
                             )
                         )
                     } catch (error: Throwable) {
@@ -80,12 +81,14 @@ class RecordedListViewModel : ViewModel() {
                             BrokenRecordedFileUiModel(
                                 id = index,
                                 name = file.name,
-                                lastModified = dateTimeFormat.format(file.lastModified())
+                                lastModified = dateTimeFormat.format(file.lastModified()),
+                                filePath = file.absolutePath
                             )
                         )
                     }
                 }
-                recordedList = recordedFiles
+                recordedList.clear()
+                recordedList.addAll(recordedFiles)
             }
         } catch (error: SecurityException) {
             Timber.e(error)
@@ -109,6 +112,60 @@ class RecordedListViewModel : ViewModel() {
                     )
                 }
         }
+    }
 
+    fun deleteFile(filePath: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val deleted: Boolean = recordedList.firstOrNull {
+                it is RecordedFileUiModel && it.filePath == filePath
+            }?.let {
+                File((it as RecordedFileUiModel).filePath)
+            }?.let {
+                try {
+                    it.delete()
+                } catch (error: SecurityException) {
+                    Timber.d("Can not delete file ${it.absolutePath} with error $error")
+                    false
+                }
+            } ?: false
+            if (deleted) {
+                recordedList.removeAll {
+                    it is RecordedFileUiModel && it.filePath == filePath
+                }
+            }
+        }
+    }
+
+    fun renameFile(filePath: String, newFileName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val renamedFile: File? = recordedList.firstOrNull {
+                it is RecordedFileUiModel && it.filePath == filePath
+            }?.let {
+                File((it as RecordedFileUiModel).filePath)
+            }?.let {
+                try {
+                    val newFile = File(it.parentFile, "$newFileName.${it.extension}")
+                    it.renameTo(newFile)
+                    newFile
+                } catch (error: Throwable) {
+                    Timber.d("Cannot rename to $newFileName with error $error")
+                    _toastMessage.emit("Cannot rename file to $newFileName")
+                    null
+                }
+            }
+            Timber.d("renamedFile=$renamedFile")
+            if (renamedFile != null) {
+                recordedList.forEachIndexed { index, recordedItem ->
+                    if (recordedItem is RecordedFileUiModel && recordedItem.filePath == filePath) {
+                        recordedList[index] = recordedItem.copy(
+                            name = renamedFile.name,
+                            nameWithoutExtension = renamedFile.nameWithoutExtension
+                        )
+                    }
+                }
+            } else {
+                _toastMessage.emit("Cannot rename file to $newFileName")
+            }
+        }
     }
 }
