@@ -32,6 +32,20 @@ fun AppearsOnTopPermissionPage(
         item {
             header()
         }
+
+        item {
+            Box(modifier = Modifier.height(Dimens.normalSpace))
+        }
+
+        //========================================================
+        item {
+            Text(
+                text = "* Note: This guideline bases on stock Android\'s UI. Other Android distributions or ROMs may have different naming and UIs." +
+                        "\n\n* Note: This permission may be called \"Appear on top\" instead of \"Display over other apps\", depending on the phone manufacturer.",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+
         //========================================================
 
         item {

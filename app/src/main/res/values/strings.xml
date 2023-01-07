@@ -13,7 +13,7 @@
 
     <string name="permission_required_title">Permission required</string>
 
-    <string name="accessibility_permission_required_message">This app requires Appears on Top permission to perform audio recording.\nPlease consider enabling it.</string>
+    <string name="accessibility_permission_required_message">This app requires \"Display over other apps\" permission to perform audio recording.\nPlease consider enabling it.</string>
     <string name="record_audio_permission_required_message">This app requires audio recording permission.\nDo you want to enable it?</string>
 
     <string name="delete_file_title">Confirm deletion</string>

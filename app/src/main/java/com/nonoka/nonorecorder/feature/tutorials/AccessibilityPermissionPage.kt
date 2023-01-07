@@ -32,6 +32,18 @@ fun AccessibilityPermissionPage(
         item {
             header()
         }
+
+        item {
+            Box(modifier = Modifier.height(Dimens.normalSpace))
+        }
+
+        //========================================================
+        item {
+            Text(
+                text = "* Note: This guideline bases on stock Android\'s UI. Other Android distributions or ROMs may have different naming and UIs.",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
         //========================================================
 
         item {
@@ -41,7 +53,7 @@ fun AccessibilityPermissionPage(
         //========================================================
         item {
             Text(
-                text = "* Prerequisite: \"Recording permission\" and \"Appear on top\" permission are granted.",
+                text = "* Prerequisite: \"Recording permission\" and \"Display over other apps\" permission are granted.",
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

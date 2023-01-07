@@ -173,14 +173,14 @@ fun HomePage(
                             .padding(Dimens.mediumSpace),
                     ) {
                         Text(
-                            text = "Appear on top permission${if (viewModel.canDrawOverlay) " is enabled" else ""}",
+                            text = "Display over other apps permission${if (viewModel.canDrawOverlay) " is enabled" else ""}",
                             style = MaterialTheme.typography.bodyLarge,
                         )
 
                         Box(modifier = Modifier.height(Dimens.mediumSpace))
 
                         Text(
-                            text = "This app needs to appear on top of the VOIP apps so that it can share to the audio input with them.",
+                            text = "This app needs to display over the VOIP apps so that it can share to the audio input with them.",
                             style = MaterialTheme.typography.bodySmall,
                         )
 
@@ -207,7 +207,7 @@ fun HomePage(
                             } else {
                                 Image(
                                     painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
-                                    contentDescription = "Appear on top permission enabled",
+                                    contentDescription = "Display over other apps permission enabled",
                                     colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
                                 )
                             }

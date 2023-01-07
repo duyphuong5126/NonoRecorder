@@ -36,6 +36,18 @@ fun RecordingPermissionPage(
             Box(modifier = Modifier.height(Dimens.normalSpace))
         }
 
+        //========================================================
+        item {
+            Text(
+                text = "* Note: This guideline bases on stock Android\'s UI. Other Android distributions or ROMs may have different naming and UIs.",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+
+        item {
+            Box(modifier = Modifier.height(Dimens.normalSpace))
+        }
+
         item {
             Text(
                 text = "Step 1:",
