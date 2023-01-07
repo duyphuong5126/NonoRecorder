@@ -22,4 +22,6 @@ object Dimens {
     val headlineIconSize = 28.dp
 
     val normalCornersRadius = 16.dp
+
+    val tutorialThumbsUpIconSize = 128.dp
 }

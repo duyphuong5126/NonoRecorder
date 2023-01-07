@@ -11,6 +11,8 @@ object Colors {
 
     val transparency = Color(0x00000000)
 
+    val successColor = Color(0xFF4CAF50)
+
     @Composable
     fun getColorScheme() =
         if (isSystemInDarkTheme()) getDarkColorScheme() else getLightColorScheme()

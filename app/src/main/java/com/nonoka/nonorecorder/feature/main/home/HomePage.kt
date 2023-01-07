@@ -33,6 +33,7 @@ import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.titleAppBar
+import com.nonoka.nonorecorder.feature.tutorials.TutorialMode
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +42,8 @@ fun HomePage(
     viewModel: HomeViewModel,
     handleDrawOverlayPermission: () -> Unit,
     handleAudioPermission: () -> Unit,
-    handleAccessibilityPermission: () -> Unit
+    handleAccessibilityPermission: () -> Unit,
+    handleLearnMore: (TutorialMode) -> Unit
 ) {
     MaterialTheme(colorScheme = Colors.getColorScheme()) {
         Scaffold(
@@ -123,7 +125,7 @@ fun HomePage(
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.ic_circle_solid_white_24dp),
-                                contentDescription = "All set icon background",
+                                contentDescription = "Permissions information background",
                                 modifier = Modifier.size(Dimens.largeIconSize)
                             )
                             Image(
@@ -190,7 +192,7 @@ fun HomePage(
                         ) {
                             if (!viewModel.canDrawOverlay) {
                                 TextButton(onClick = {
-
+                                    handleLearnMore(TutorialMode.AppearsOnTop)
                                 }) {
                                     Text(
                                         text = "Learn more",
@@ -248,7 +250,7 @@ fun HomePage(
                         ) {
                             if (!viewModel.canRecordAudio) {
                                 TextButton(onClick = {
-
+                                    handleLearnMore(TutorialMode.Recording)
                                 }) {
                                     Text(
                                         text = "Learn more",
@@ -308,7 +310,7 @@ fun HomePage(
                                 Timber.d("hasAccessibilityPermission=${viewModel.hasAccessibilityPermission}")
                                 if (!viewModel.hasAccessibilityPermission) {
                                     TextButton(onClick = {
-
+                                        handleLearnMore(TutorialMode.Accessibility)
                                     }) {
                                         Text(
                                             text = "Learn more",

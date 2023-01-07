@@ -54,6 +54,7 @@ import com.nonoka.nonorecorder.feature.main.home.HomeViewModel
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListPage
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListViewModel
 import com.nonoka.nonorecorder.feature.player.AudioPlayerActivity
+import com.nonoka.nonorecorder.feature.tutorials.TutorialActivity
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -236,6 +237,9 @@ class MainActivity : AppCompatActivity() {
                                 handleAccessibilityPermission = {
                                     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                                     startActivity(intent)
+                                },
+                                handleLearnMore = { tutorialMode ->
+                                    TutorialActivity.start(this@MainActivity, tutorialMode)
                                 }
                             )
                         }

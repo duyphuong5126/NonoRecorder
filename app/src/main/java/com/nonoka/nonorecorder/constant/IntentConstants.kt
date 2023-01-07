@@ -6,4 +6,5 @@ object IntentConstants {
     const val extraDirectory = "EXTRA_DIRECTORY"
     const val extraFilePaths = "EXTRA_FILE_PATHS"
     const val extraStartPosition = "EXTRA_START_POSITION"
+    const val extraTutorialModeId = "EXTRA_TUTORIAL_MODE_ID"
 }
