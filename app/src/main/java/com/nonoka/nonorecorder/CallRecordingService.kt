@@ -23,12 +23,14 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import com.nonoka.nonorecorder.recorder.AudioCallRecorder
 import com.nonoka.nonorecorder.recorder.CallRecorder
+import com.nonoka.nonorecorder.recorder.VideoCallRecorder
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -104,6 +106,8 @@ class CallRecordingService : AccessibilityService() {
                     isAccessibilitySettingsOn
 
     private val lastTimePermissionsReady = AtomicBoolean(false)
+
+    private var cancelRecordingTask: Job? = null
 
     @SuppressLint("RtlHardcoded")
     override fun onCreate() {
@@ -194,7 +198,7 @@ class CallRecordingService : AccessibilityService() {
             }, interval = PERMISSIONS_CHECK_INTERVAL)
         }
 
-        callRecorder = AudioCallRecorder()
+        callRecorder = VideoCallRecorder()
 
         /*  back = new ImageView(this);
         home = new ImageView(this);
@@ -444,15 +448,25 @@ class CallRecordingService : AccessibilityService() {
             AudioManager.MODE_IN_CALL -> {
                 Timber.d("AudioMode>>> In a call")
                 if ((audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) && arePermissionsReady) {
-                    callRecorder.startCallRecording(this)
-                    onStartRecording()
+                    if (cancelRecordingTask != null) {
+                        cancelRecordingTask?.cancel()
+                        cancelRecordingTask = null
+                    } else {
+                        callRecorder.startCallRecording(this)
+                        onStartRecording()
+                    }
                 }
             }
             AudioManager.MODE_IN_COMMUNICATION -> {
                 Timber.d("AudioMode>>> In a VOIP call")
                 if ((audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) && arePermissionsReady) {
-                    callRecorder.startCallRecording(this)
-                    onStartRecording()
+                    if (cancelRecordingTask != null) {
+                        cancelRecordingTask?.cancel()
+                        cancelRecordingTask = null
+                    } else {
+                        callRecorder.startCallRecording(this)
+                        onStartRecording()
+                    }
                 }
             }
             AudioManager.MODE_RINGTONE -> {
@@ -470,8 +484,14 @@ class CallRecordingService : AccessibilityService() {
             AudioManager.MODE_NORMAL -> {
                 Timber.d("AudioMode>>> Normal")
                 if (audioMode == AudioManager.MODE_IN_COMMUNICATION || audioMode == AudioManager.MODE_IN_CALL) {
-                    callRecorder.stopCallRecording(this)
-                    onStopRecording()
+                    if (cancelRecordingTask == null) {
+                        cancelRecordingTask = ioScope.launch {
+                            delay(ALLOWED_INTERRUPTING_TIME)
+                            callRecorder.stopCallRecording(this@CallRecordingService)
+                            onStopRecording()
+                            cancelRecordingTask = null
+                        }
+                    }
                 }
             }
             AudioManager.MODE_CALL_REDIRECT -> {
@@ -488,7 +508,7 @@ class CallRecordingService : AccessibilityService() {
     private fun onStartRecording() {
         NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getText(R.string.recording_call))
-            .setSmallIcon(R.drawable.ic_microphone_solid_24dp)
+            .setSmallIcon(R.drawable.ic_microphone_24dp)
             .setContentIntent(pendingIntent)
             .setTicker(getText(R.string.recording_call))
             .setOnlyAlertOnce(true)
@@ -553,5 +573,6 @@ class CallRecordingService : AccessibilityService() {
 
         private const val AUDIO_MODE_CHECK_INTERVAL = 1000L
         private const val PERMISSIONS_CHECK_INTERVAL = 5000L
+        private const val ALLOWED_INTERRUPTING_TIME = 5000L
     }
 }

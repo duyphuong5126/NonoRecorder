@@ -117,21 +117,24 @@ class RecordedListViewModel : ViewModel() {
     fun deleteFile(filePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val deleted: Boolean = recordedList.firstOrNull {
-                it is RecordedFileUiModel && it.filePath == filePath
+                (it is RecordedFileUiModel && it.filePath == filePath) || (it is BrokenRecordedFileUiModel && it.filePath == filePath)
             }?.let {
-                File((it as RecordedFileUiModel).filePath)
+                return@let if (it is RecordedFileUiModel) it.filePath else if (it is BrokenRecordedFileUiModel) it.filePath else null
             }?.let {
+                val targetFile = File(it)
                 try {
-                    it.delete()
-                } catch (error: SecurityException) {
-                    Timber.d("Can not delete file ${it.absolutePath} with error $error")
+                    targetFile.delete()
+                } catch (error: Throwable) {
+                    Timber.d("Can not delete file ${targetFile.absolutePath} with error $error")
                     false
                 }
             } ?: false
             if (deleted) {
                 recordedList.removeAll {
-                    it is RecordedFileUiModel && it.filePath == filePath
+                    it is RecordedFileUiModel && it.filePath == filePath || it is BrokenRecordedFileUiModel && it.filePath == filePath
                 }
+            } else {
+                _toastMessage.emit("Cannot delete file $filePath")
             }
         }
     }

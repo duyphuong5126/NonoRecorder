@@ -15,7 +15,6 @@ import com.nonoka.nonorecorder.constant.IntentConstants
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -125,16 +124,18 @@ class AudioCallRecorder : CallRecorder {
         }
         while (isRecordingAudio.get()) {
             val read = audioRecorder!!.read(data, 0, data.size)
-            try {
-                outputStream.write(data, 0, read)
-            } catch (e: IOException) {
-                e.printStackTrace()
+            if (read != AudioRecord.ERROR_INVALID_OPERATION) {
+                try {
+                    outputStream.write(data, 0, read)
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                }
             }
         }
         try {
             outputStream.flush()
             outputStream.close()
-        } catch (e: IOException) {
+        } catch (e: Throwable) {
             e.printStackTrace()
         }
     }
@@ -156,7 +157,7 @@ class AudioCallRecorder : CallRecorder {
             )
             recordedAudioFile.delete()
             Timber.d("Converted file ${wawOutputFile.name}")
-        } catch (error: SecurityException) {
+        } catch (error: Throwable) {
             Timber.d("Failed to convert file ${recordedAudioFile.name} with error $error")
         }
     }

@@ -140,6 +140,8 @@ class MainActivity : AppCompatActivity() {
                     AudioPlayerActivity.start(this@MainActivity, it.filePathList, it.startPosition)
                 }
             }
+        }
+        lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 recordedListViewModel.toastMessage.collect {
                     Toast.makeText(this@MainActivity, it, Toast.LENGTH_SHORT).show()
