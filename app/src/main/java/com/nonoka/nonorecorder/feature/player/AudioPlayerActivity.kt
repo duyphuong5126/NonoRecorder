@@ -11,6 +11,7 @@ import com.google.android.exoplayer2.DefaultRenderersFactory.EXTENSION_RENDERER_
 import com.google.android.exoplayer2.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.Player.Listener
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
@@ -19,12 +20,15 @@ import com.nonoka.nonorecorder.constant.IntentConstants.extraFilePaths
 import com.nonoka.nonorecorder.constant.IntentConstants.extraStartPosition
 import com.nonoka.nonorecorder.databinding.ActivityAudioPlayerBinding
 import java.io.File
+import timber.log.Timber
 
 
-class AudioPlayerActivity : AppCompatActivity(), Listener, View.OnClickListener {
+class AudioPlayerActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var exoPlayer: ExoPlayer
 
     private lateinit var viewBinding: ActivityAudioPlayerBinding
+
+    private var listener: Listener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,9 +36,12 @@ class AudioPlayerActivity : AppCompatActivity(), Listener, View.OnClickListener 
 
         setContentView(viewBinding.root)
 
-        val mediaItemList: List<MediaItem> = intent.getStringArrayExtra(extraFilePaths)?.map {
-            MediaItem.fromUri(Uri.fromFile(File(it)))
+        val fileList = intent.getStringArrayExtra(extraFilePaths)?.map {
+            File(it)
         } ?: return
+        val mediaItemList: List<MediaItem> = fileList.map {
+            MediaItem.fromUri(Uri.fromFile(it))
+        }
         val startPosition = intent.getIntExtra(extraStartPosition, -1)
         if (mediaItemList.isEmpty() || startPosition < 0) {
             return
@@ -47,7 +54,6 @@ class AudioPlayerActivity : AppCompatActivity(), Listener, View.OnClickListener 
             .build().apply {
                 trackSelectionParameters =
                     DefaultTrackSelector.Parameters.Builder(applicationContext).build()
-                addListener(this@AudioPlayerActivity)
                 playWhenReady = false
             }
 
@@ -58,12 +64,21 @@ class AudioPlayerActivity : AppCompatActivity(), Listener, View.OnClickListener 
         viewBinding.audioPlayer.player = exoPlayer
         viewBinding.audioPlayer.showController()
         viewBinding.buttonBack.setOnClickListener(this)
-        exoPlayer.addListener(object : Listener {
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                super.onMediaItemTransition(mediaItem, reason)
-                viewBinding.trackTitle.text = mediaItem?.mediaMetadata?.title ?: ""
+        listener = object : Listener {
+            override fun onEvents(player: Player, events: Player.Events) {
+                super.onEvents(player, events)
+                val currentIndex = player.currentMediaItemIndex
+                if (currentIndex >= 0) {
+                    var title = mediaItemList[currentIndex].mediaMetadata.title
+                    if (title == null) {
+                        title = fileList[currentIndex].nameWithoutExtension
+                    }
+                    Timber.d("currentIndex=$currentIndex, title=$title")
+                    viewBinding.trackTitle.text = title
+                }
             }
-        })
+        }
+        listener?.let(exoPlayer::addListener)
     }
 
     override fun onClick(v: View?) {
@@ -74,6 +89,8 @@ class AudioPlayerActivity : AppCompatActivity(), Listener, View.OnClickListener 
 
     override fun onDestroy() {
         super.onDestroy()
+        listener?.let(exoPlayer::removeListener)
+        listener = null
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         exoPlayer.release()
