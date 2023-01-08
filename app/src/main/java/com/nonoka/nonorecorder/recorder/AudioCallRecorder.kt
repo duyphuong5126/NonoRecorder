@@ -47,6 +47,7 @@ class AudioCallRecorder : CallRecorder {
         get() = isRecordingAudio.get()
 
     override fun startCallRecording(context: Context) {
+        Timber.d("Recording>>> starting audio recorder")
         if (checkSelfPermission(
                 context,
                 RECORD_AUDIO
@@ -54,44 +55,47 @@ class AudioCallRecorder : CallRecorder {
         ) {
             return
         }
-
-        audioRecorder = AudioRecord(
-            VOICE_RECOGNITION,
-            sampleRateInHz,
-            channelConfig,
-            audioFormat,
-            bufferSizeInBytes
-        )
-
-        initAudioOutputFile(context)
-        if (audioRecorder?.state != AudioRecord.STATE_INITIALIZED) {
-            Timber.e("error initializing AudioRecord")
-            return
-        }
         try {
+            audioRecorder = AudioRecord(
+                VOICE_RECOGNITION,
+                sampleRateInHz,
+                channelConfig,
+                audioFormat,
+                bufferSizeInBytes
+            )
+
+            initAudioOutputFile(context)
+            if (audioRecorder?.state != AudioRecord.STATE_INITIALIZED) {
+                Timber.e("Recording>>> failed to init AudioRecord")
+                return
+            }
             audioRecorder?.startRecording()
             isRecordingAudio.compareAndSet(false, true)
             ioScope.launch {
                 updateAudioOutputFile()
             }
-        } catch (e: Throwable) {
-            Timber.e("prepare() failed with error $e")
+        } catch (error: Throwable) {
+            Timber.d("Recording>>> error in starting video recorder: $error")
         }
-        Timber.d("recording started")
+        Timber.d("Recording>>> audio recorder started")
     }
 
     override fun stopCallRecording(context: Context) {
-        if (!isRecordingAudio.get()) {
-            return
+        Timber.d("Recording>>> stopping audio recorder")
+        try {
+            if (!isRecordingAudio.get()) {
+                return
+            }
+            audioRecorder?.stop()
+            audioRecorder?.release()
+            audioRecorder = null
+            isRecordingAudio.compareAndSet(true, false)
+
+            convertPcmToWav(context)
+        } catch (error: Throwable) {
+            Timber.d("Recording>>> error in stopping audio recorder: $error")
         }
-        audioRecorder?.stop()
-        audioRecorder?.release()
-        audioRecorder = null
-        isRecordingAudio.compareAndSet(true, false)
-
-        convertPcmToWav(context)
-
-        Timber.d("recording stopped")
+        Timber.d("Recording>>> audio recorder stopped")
 
         ioScope.launch {
             delay(5000)

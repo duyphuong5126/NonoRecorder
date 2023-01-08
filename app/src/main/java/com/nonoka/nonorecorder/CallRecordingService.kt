@@ -67,7 +67,6 @@ class CallRecordingService : AccessibilityService() {
             var accessibilityEnabled = 0
             val packageName = packageName
             val service = "$packageName/$packageName.${CallRecordingService::class.java.simpleName}"
-            Timber.d("service = $service")
             val accessibilityFound = false
             try {
                 accessibilityEnabled = Settings.Secure.getInt(

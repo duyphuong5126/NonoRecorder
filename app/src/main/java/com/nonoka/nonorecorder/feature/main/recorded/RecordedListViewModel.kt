@@ -130,8 +130,30 @@ class RecordedListViewModel : ViewModel() {
                 }
             } ?: false
             if (deleted) {
+                var deletedItemDateTime = ""
                 recordedList.removeAll {
-                    it is RecordedFileUiModel && it.filePath == filePath || it is BrokenRecordedFileUiModel && it.filePath == filePath
+                    if (it is RecordedFileUiModel && it.filePath == filePath) {
+                        deletedItemDateTime = it.lastModified
+                        true
+                    } else if (it is BrokenRecordedFileUiModel && it.filePath == filePath) {
+                        deletedItemDateTime = it.lastModified
+                        true
+                    } else false
+                }
+                val remainedDateTimeList = arrayListOf<String>()
+                recordedList.forEach {
+                    if (it is RecordedFileUiModel) {
+                        remainedDateTimeList.add(it.lastModified)
+                    } else if (it is BrokenRecordedFileUiModel) {
+                        remainedDateTimeList.add(it.lastModified)
+                    }
+                }
+                if (deletedItemDateTime.isNotBlank()) {
+                    recordedList.removeAll {
+                        it is RecordedDate && deletedItemDateTime.contains(it.date) && remainedDateTimeList.none { dateTime ->
+                            dateTime.contains(it.date)
+                        }
+                    }
                 }
             } else {
                 _toastMessage.emit("Cannot delete file $filePath")

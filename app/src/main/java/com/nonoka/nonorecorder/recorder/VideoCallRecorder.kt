@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
 import android.os.Build
+import com.nonoka.nonorecorder.constant.FileConstants.mp3FileExt
 import com.nonoka.nonorecorder.constant.FileConstants.mp4FileExt
 import com.nonoka.nonorecorder.constant.FileConstants.recordedFolder
 import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
@@ -34,20 +35,21 @@ class VideoCallRecorder : CallRecorder {
         get() = isRecordingAudio.get()
 
     override fun startCallRecording(context: Context) {
-        @Suppress("DEPRECATION")
-        videoRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MediaRecorder(context)
-        } else {
-            MediaRecorder()
-        }
-        initMediaOutputFile(context)
-        // This must be needed source
-        videoRecorder?.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
-        videoRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        videoRecorder?.setOutputFile(recordedVideo.absolutePath)
-        //recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        videoRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC)
+        Timber.d("Recording>>> starting video recorder")
         try {
+            @Suppress("DEPRECATION")
+            videoRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                MediaRecorder(context)
+            } else {
+                MediaRecorder()
+            }
+            initMediaOutputFile(context)
+            // This must be needed source
+            videoRecorder?.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+            videoRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            videoRecorder?.setOutputFile(recordedVideo.absolutePath)
+            //recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            videoRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC)
             videoRecorder?.prepare()
             videoRecorder?.start()
             isRecordingAudio.compareAndSet(false, true)
@@ -57,22 +59,37 @@ class VideoCallRecorder : CallRecorder {
                     MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED -> "Max file size reached"
                     else -> "Unknown"
                 }
-                Timber.d("Warning: $whatMessage, extra=$extra")
+                Timber.d("Recording>>> warning: $whatMessage, extra=$extra")
             }
-        } catch (e: Throwable) {
-            Timber.e("prepare() failed with error $e")
+        } catch (error: Throwable) {
+            Timber.d("Recording>>> error in starting video recorder: $error")
         }
-        Timber.d("recording started")
+        Timber.d("Recording>>> video recorder started")
     }
 
     override fun stopCallRecording(context: Context) {
-        videoRecorder?.stop()
-        videoRecorder?.release()
-        videoRecorder = null
-        isRecordingAudio.compareAndSet(true, false)
-        Timber.d("recording stopped")
+        Timber.d("Recording>>> stopping video recorder")
+        try {
+            videoRecorder?.stop()
+            videoRecorder?.release()
+            videoRecorder = null
+            val outputMp3File =
+                File(getRecordDir(context), "${dateFormat.format(Date())}$mp3FileExt")
+            VideoAudioExtractor.convertMedia(
+                srcPath = recordedVideo.absolutePath,
+                dstPath = outputMp3File.absolutePath,
+                useVideo = false,
+                useAudio = true
+            )
+            val deletedMp4File = recordedVideo.delete()
+            Timber.d("Recording>>> deletedMp4File=$deletedMp4File")
+            isRecordingAudio.compareAndSet(true, false)
+        } catch (error: Throwable) {
+            Timber.d("Recording>>> error in stopping video recorder: $error")
+        }
+        Timber.d("Recording>>> video recorder stopped")
 
-        ioScope.launch(Dispatchers.IO) {
+        ioScope.launch {
             delay(5000)
             context.sendBroadcast(Intent(actionFinishedRecording).apply {
                 putExtra(extraDirectory, recordedVideo.parentFile?.absolutePath)
@@ -85,12 +102,16 @@ class VideoCallRecorder : CallRecorder {
     }
 
     private fun initMediaOutputFile(context: Context) {
+        recordedVideo = File(getRecordDir(context), "${dateFormat.format(Date())}$mp4FileExt")
+        recordedVideo.createNewFile()
+    }
+
+    private fun getRecordDir(context: Context): File {
         val recordDir = File(context.filesDir.absolutePath, recordedFolder)
         if (!recordDir.exists()) {
             recordDir.mkdir()
         }
-        recordedVideo = File(recordDir, "${dateFormat.format(Date())}$mp4FileExt")
-        recordedVideo.createNewFile()
+        return recordDir
     }
 
     /*
