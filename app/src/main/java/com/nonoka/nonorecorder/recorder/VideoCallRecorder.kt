@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -24,6 +25,7 @@ import timber.log.Timber
 class VideoCallRecorder : CallRecorder {
     private var videoRecorder: MediaRecorder? = null
     private lateinit var recordedVideo: File
+    private var pendingExtraOutputFile: File? = null
 
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
@@ -31,11 +33,14 @@ class VideoCallRecorder : CallRecorder {
 
     private val isRecordingAudio = AtomicBoolean(false)
 
+    private val filePartIndex = AtomicInteger(0)
+
     override val isRecording: Boolean
         get() = isRecordingAudio.get()
 
     override fun startCallRecording(context: Context) {
         Timber.d("Recording>>> starting video recorder")
+        filePartIndex.getAndSet(0)
         try {
             @Suppress("DEPRECATION")
             videoRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -50,13 +55,25 @@ class VideoCallRecorder : CallRecorder {
             videoRecorder?.setOutputFile(recordedVideo.absolutePath)
             //recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             videoRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC)
+            /*videoRecorder?.setAudioSamplingRate()
+            videoRecorder?.setAudioEncodingBitRate()*/
             videoRecorder?.prepare()
             videoRecorder?.start()
             isRecordingAudio.compareAndSet(false, true)
             videoRecorder?.setOnInfoListener { _, what, extra ->
                 val whatMessage = when (what) {
+                    MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            videoRecorder?.setNextOutputFile(getNextOutputFile(context))
+                        }
+                        "Max file size approaching"
+                    }
                     MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED -> "Max duration reached"
                     MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED -> "Max file size reached"
+                    MediaRecorder.MEDIA_RECORDER_INFO_NEXT_OUTPUT_FILE_STARTED -> {
+                        pendingExtraOutputFile = null
+                        "Next output file started"
+                    }
                     else -> "Unknown"
                 }
                 Timber.d("Recording>>> warning: $whatMessage, extra=$extra")
@@ -82,7 +99,10 @@ class VideoCallRecorder : CallRecorder {
                 useAudio = true
             )
             val deletedMp4File = recordedVideo.delete()
-            Timber.d("Recording>>> deletedMp4File=$deletedMp4File")
+            Timber.d("Recording>>> deleted mp4 file=$deletedMp4File")
+            pendingExtraOutputFile?.delete()?.let {
+                Timber.d("Recording>>> deleted extra file=$it")
+            }
             isRecordingAudio.compareAndSet(true, false)
         } catch (error: Throwable) {
             Timber.d("Recording>>> error in stopping video recorder: $error")
@@ -104,6 +124,15 @@ class VideoCallRecorder : CallRecorder {
     private fun initMediaOutputFile(context: Context) {
         recordedVideo = File(getRecordDir(context), "${dateFormat.format(Date())}$mp4FileExt")
         recordedVideo.createNewFile()
+    }
+
+    private fun getNextOutputFile(context: Context): File {
+        val nextOutputFileName =
+            "${recordedVideo.nameWithoutExtension}_${filePartIndex.incrementAndGet()}"
+        val file = File(getRecordDir(context), "$nextOutputFileName$mp4FileExt")
+        file.createNewFile()
+        pendingExtraOutputFile = file
+        return file
     }
 
     private fun getRecordDir(context: Context): File {
