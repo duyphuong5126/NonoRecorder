@@ -4,11 +4,18 @@ import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
 import android.os.Build
+import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_CHANNELS
+import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_ENCODING_BITRATE
+import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_SAMPLING_RATE
 import com.nonoka.nonorecorder.constant.FileConstants.mp3FileExt
 import com.nonoka.nonorecorder.constant.FileConstants.mp4FileExt
 import com.nonoka.nonorecorder.constant.FileConstants.recordedFolder
 import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
 import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
+import com.nonoka.nonorecorder.domain.entity.SettingCategory.SAMPLING_RATE
+import com.nonoka.nonorecorder.domain.entity.SettingCategory.AUDIO_CHANNELS
+import com.nonoka.nonorecorder.domain.entity.SettingCategory.ENCODING_BITRATE
+import com.nonoka.nonorecorder.infrastructure.ConfigDataSource
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -22,7 +29,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-class VideoCallRecorder : CallRecorder {
+class VideoCallRecorder(
+    private val configDataSource: ConfigDataSource
+) : CallRecorder {
     private var videoRecorder: MediaRecorder? = null
     private lateinit var recordedVideo: File
     private var pendingExtraOutputFile: File? = null
@@ -43,23 +52,31 @@ class VideoCallRecorder : CallRecorder {
         filePartIndex.getAndSet(0)
         try {
             @Suppress("DEPRECATION")
-            videoRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 MediaRecorder(context)
             } else {
                 MediaRecorder()
             }
             initMediaOutputFile(context)
             // This must be needed source
-            videoRecorder?.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
-            videoRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            videoRecorder?.setOutputFile(recordedVideo.absolutePath)
+            recorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+
+            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            recorder.setOutputFile(recordedVideo.absolutePath)
             //recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-            videoRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC)
-            /*videoRecorder?.setAudioSamplingRate()
-            videoRecorder?.setAudioEncodingBitRate()*/
-            videoRecorder?.prepare()
-            videoRecorder?.start()
+            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC)
+
+            configDataSource.getInt(SAMPLING_RATE.name, DEFAULT_SAMPLING_RATE)
+                .let(recorder::setAudioSamplingRate)
+            configDataSource.getInt(ENCODING_BITRATE.name, DEFAULT_ENCODING_BITRATE)
+                .let(recorder::setAudioEncodingBitRate)
+            configDataSource.getInt(AUDIO_CHANNELS.name, DEFAULT_CHANNELS)
+                .let(recorder::setAudioChannels)
+
+            recorder.prepare()
+            recorder.start()
             isRecordingAudio.compareAndSet(false, true)
+            videoRecorder = recorder
             videoRecorder?.setOnInfoListener { _, what, extra ->
                 val whatMessage = when (what) {
                     MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING -> {

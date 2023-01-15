@@ -23,9 +23,13 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.nonoka.nonorecorder.di.qualifier.RecordingSetting
+import com.nonoka.nonorecorder.infrastructure.ConfigDataSource
 import com.nonoka.nonorecorder.recorder.CallRecorder
 import com.nonoka.nonorecorder.recorder.VideoCallRecorder
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,7 +38,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+@AndroidEntryPoint
 class CallRecordingService : AccessibilityService() {
+    @Inject
+    @RecordingSetting
+    lateinit var configDataSource: ConfigDataSource
+
     private var windowManager: WindowManager? = null
     // ImageView back,home,notification,minimize;
     //WindowManager.LayoutParams params;
@@ -197,7 +206,7 @@ class CallRecordingService : AccessibilityService() {
             }, interval = PERMISSIONS_CHECK_INTERVAL)
         }
 
-        callRecorder = VideoCallRecorder()
+        callRecorder = VideoCallRecorder(configDataSource)
 
         /*  back = new ImageView(this);
         home = new ImageView(this);

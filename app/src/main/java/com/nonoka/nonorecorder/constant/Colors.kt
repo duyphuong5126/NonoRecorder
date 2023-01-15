@@ -45,6 +45,8 @@ object Colors {
             onError = Color(0xFFFFFFFF),
             errorContainer = Color(0xFFFFCDD2),
             onErrorContainer = Color(0xFFD32F2F),
+
+            outline = Color(0xFFE0E0E0)
         )
     }
 
@@ -61,10 +63,10 @@ object Colors {
             secondaryContainer = Color(0xFFDED4ED),
             onSecondaryContainer = Color(0xFF473563),
 
-            tertiary = Color(0xFF266C94),
+            tertiary = Color(0xFF5ABDF7),
             onTertiary = Color(0xFFDDEBF3),
             tertiaryContainer = Color(0xFFDDEBF3),
-            onTertiaryContainer = Color(0xFF0A3953),
+            onTertiaryContainer = Color(0xFF1D5777),
 
             background = Color(0xFF000000),
             onBackground = Color(0xFFFFFFFF),
@@ -76,6 +78,8 @@ object Colors {
             onError = Color(0xFFFFFFFF),
             errorContainer = Color(0xFFFFCDD2),
             onErrorContainer = Color(0xFFD32F2F),
+
+            outline = Color(0xFF616161)
         )
     }
 }

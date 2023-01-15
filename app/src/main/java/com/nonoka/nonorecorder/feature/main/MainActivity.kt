@@ -53,15 +53,20 @@ import com.nonoka.nonorecorder.feature.main.home.HomePage
 import com.nonoka.nonorecorder.feature.main.home.HomeViewModel
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListPage
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListViewModel
+import com.nonoka.nonorecorder.feature.main.settings.SettingsPage
+import com.nonoka.nonorecorder.feature.main.settings.SettingsViewModel
 import com.nonoka.nonorecorder.feature.player.AudioPlayerActivity
 import com.nonoka.nonorecorder.feature.tutorials.TutorialActivity
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private val homeViewModel: HomeViewModel by viewModels()
     private val recordedListViewModel: RecordedListViewModel by viewModels()
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     private val drawOverlayPermissionRequestLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -134,6 +139,8 @@ class MainActivity : AppCompatActivity() {
             canRecordAudio = isRecordingPermissionGranted,
             hasAccessibilityPermission = isAccessibilitySettingsOn
         )
+        recordedListViewModel.initialize(filesDir.absolutePath)
+        settingsViewModel.init()
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 recordedListViewModel.startPlayingList.collect {
@@ -151,11 +158,11 @@ class MainActivity : AppCompatActivity() {
 
         val defaultNavigationRoutes =
             arrayOf(
-                MainNavigationRoute.HomeRouteMain(label = "Home"),
-                MainNavigationRoute.RecordedListRouteMain(label = "Recorded")
+                MainNavigationRoute.HomeRouteMain(label = getString(R.string.home_tab_label)),
+                MainNavigationRoute.RecordedListRouteMain(label = getString(R.string.recorded_list_tab_label)),
+                MainNavigationRoute.SettingsRouteMain(label = getString(R.string.settings_tab_label))
             )
         setContent {
-
             val navController = rememberNavController()
             MaterialTheme(
                 colorScheme = Colors.getColorScheme(),
@@ -264,6 +271,10 @@ class MainActivity : AppCompatActivity() {
                                 onRenameFile = this@MainActivity::onRenameFile,
                             )
                         }
+
+                        composable(settingsRouteName) {
+                            SettingsPage(settingsViewModel)
+                        }
                     }
                 }
             }
@@ -278,7 +289,6 @@ class MainActivity : AppCompatActivity() {
             canRecordAudio = isRecordingPermissionGranted,
             hasAccessibilityPermission = isAccessibilitySettingsOn
         )
-        recordedListViewModel.initialize(filesDir.absolutePath)
 
         registerReceiver(recordingFinishedReceiver, IntentFilter(actionFinishedRecording))
     }
@@ -324,6 +334,7 @@ class MainActivity : AppCompatActivity() {
         return when (route) {
             is MainNavigationRoute.HomeRouteMain -> R.drawable.ic_home_solid_24dp
             is MainNavigationRoute.RecordedListRouteMain -> R.drawable.ic_list_solid_24dp
+            is MainNavigationRoute.SettingsRouteMain -> R.drawable.ic_settings_24dp
         }
     }
 

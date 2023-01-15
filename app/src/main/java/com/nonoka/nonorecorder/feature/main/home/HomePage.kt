@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import com.nonoka.nonorecorder.R
@@ -51,7 +52,7 @@ fun HomePage(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Recording permissions",
+                            text = stringResource(id = R.string.home_page_title),
                             style = MaterialTheme.typography.titleAppBar,
                         )
                     },

@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.Colors
@@ -57,7 +58,7 @@ fun RecordedListPage(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Recorded files",
+                            text = stringResource(id = R.string.recorded_list_page_title),
                             style = MaterialTheme.typography.titleAppBar,
                         )
                     },
@@ -98,7 +99,7 @@ private fun EmptyRecordedList(paddingValues: PaddingValues) {
         Box(modifier = Modifier.height(Dimens.normalSpace))
 
         Text(
-            text = "You have no recorded VOIP call.",
+            text = "Your VOIP calls will be recorded automatically.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
