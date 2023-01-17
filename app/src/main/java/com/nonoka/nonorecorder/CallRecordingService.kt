@@ -23,11 +23,18 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_CHANNELS
+import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_ENCODING_BITRATE
+import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_SAMPLING_RATE
 import com.nonoka.nonorecorder.di.qualifier.RecordingSetting
+import com.nonoka.nonorecorder.domain.entity.SettingCategory.SAMPLING_RATE
+import com.nonoka.nonorecorder.domain.entity.SettingCategory.AUDIO_CHANNELS
+import com.nonoka.nonorecorder.domain.entity.SettingCategory.ENCODING_BITRATE
 import com.nonoka.nonorecorder.infrastructure.ConfigDataSource
 import com.nonoka.nonorecorder.recorder.CallRecorder
 import com.nonoka.nonorecorder.recorder.VideoCallRecorder
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.DecimalFormat
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -75,7 +82,9 @@ class CallRecordingService : AccessibilityService() {
         get() {
             var accessibilityEnabled = 0
             val packageName = packageName
-            val service = "$packageName/$packageName.${CallRecordingService::class.java.simpleName}"
+            val codePackageName = packageName.replace(".debug", "")
+            val service =
+                "$packageName/$codePackageName.${CallRecordingService::class.java.simpleName}"
             val accessibilityFound = false
             try {
                 accessibilityEnabled = Settings.Secure.getInt(
@@ -116,6 +125,27 @@ class CallRecordingService : AccessibilityService() {
     private val lastTimePermissionsReady = AtomicBoolean(false)
 
     private var cancelRecordingTask: Job? = null
+
+    private val numberFormat = DecimalFormat("#,###.###")
+
+    private val standbyNotificationContentText: String
+        get() {
+            val samplingRateText = numberFormat.format(
+                configDataSource.getInt(SAMPLING_RATE.name, DEFAULT_SAMPLING_RATE)
+            )
+            val audioChannelsText = numberFormat.format(
+                configDataSource.getInt(AUDIO_CHANNELS.name, DEFAULT_CHANNELS)
+            )
+            val encodingBitrateText = numberFormat.format(
+                configDataSource.getInt(ENCODING_BITRATE.name, DEFAULT_ENCODING_BITRATE)
+            )
+            return getString(
+                R.string.recording_configs,
+                samplingRateText,
+                encodingBitrateText,
+                audioChannelsText
+            )
+        }
 
     @SuppressLint("RtlHardcoded")
     override fun onCreate() {
@@ -171,6 +201,14 @@ class CallRecordingService : AccessibilityService() {
         val notification: Notification =
             NotificationCompat.Builder(this, createNotificationChannel())
                 .setContentTitle(getText(if (lastTimeReady) R.string.waiting_for_call else R.string.permissions_not_enough_title))
+                .apply {
+                    if (BuildConfig.DEBUG && lastTimeReady) {
+                        setStyle(
+                            NotificationCompat.BigTextStyle()
+                                .bigText(standbyNotificationContentText)
+                        )
+                    }
+                }
                 .setSmallIcon(if (lastTimeReady) R.drawable.ic_standby_24dp else R.drawable.ic_info_24dp)
                 .setContentIntent(pendingIntent)
                 .setTicker(getText(if (lastTimeReady) R.string.waiting_for_call else R.string.permissions_not_enough_title))
@@ -529,33 +567,11 @@ class CallRecordingService : AccessibilityService() {
     }
 
     private fun onStopRecording() {
-        NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getText(R.string.waiting_for_call))
-            .setSmallIcon(R.drawable.ic_standby_24dp)
-            .setContentIntent(pendingIntent)
-            .setTicker(getText(R.string.waiting_for_call))
-            .setOnlyAlertOnce(true)
-            .build()
-            .let {
-                val notificationManager =
-                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
-            }
+        showStandByNotification()
     }
 
     private fun onPermissionReady() {
-        NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getText(R.string.waiting_for_call))
-            .setSmallIcon(R.drawable.ic_standby_24dp)
-            .setContentIntent(pendingIntent)
-            .setTicker(getText(R.string.waiting_for_call))
-            .setOnlyAlertOnce(true)
-            .build()
-            .let {
-                val notificationManager =
-                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
-            }
+        showStandByNotification()
     }
 
     private fun onPermissionRemoval() {
@@ -565,6 +581,28 @@ class CallRecordingService : AccessibilityService() {
             .setSmallIcon(R.drawable.ic_info_24dp)
             .setContentIntent(pendingIntent)
             .setTicker(getText(R.string.permissions_not_enough_title))
+            .setOnlyAlertOnce(true)
+            .build()
+            .let {
+                val notificationManager =
+                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
+            }
+    }
+
+    private fun showStandByNotification() {
+        NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle(getText(R.string.waiting_for_call))
+            .apply {
+                if (BuildConfig.DEBUG) {
+                    setStyle(
+                        NotificationCompat.BigTextStyle().bigText(standbyNotificationContentText)
+                    )
+                }
+            }
+            .setSmallIcon(R.drawable.ic_standby_24dp)
+            .setContentIntent(pendingIntent)
+            .setTicker(getText(R.string.waiting_for_call))
             .setOnlyAlertOnce(true)
             .build()
             .let {

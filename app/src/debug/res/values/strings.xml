@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Nono Recorder Debug</string>
+    <string name="recording_configs">Recording configs:\n- Sampling rate: %s kHz\n- Encoding bitrate: %s kbps\n- Audio channels: %s</string>
+</resources>

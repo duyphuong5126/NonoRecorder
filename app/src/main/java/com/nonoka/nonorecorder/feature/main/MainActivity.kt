@@ -45,11 +45,9 @@ import com.nonoka.nonorecorder.App
 import com.nonoka.nonorecorder.CallRecordingService
 import com.nonoka.nonorecorder.NonoTheme
 import com.nonoka.nonorecorder.R
-import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
 import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
-import com.nonoka.nonorecorder.constant.brandTypography
 import com.nonoka.nonorecorder.databinding.LayoutDialogInputBinding
 import com.nonoka.nonorecorder.feature.main.home.HomePage
 import com.nonoka.nonorecorder.feature.main.home.HomeViewModel
@@ -91,7 +89,9 @@ class MainActivity : AppCompatActivity() {
         get() {
             var accessibilityEnabled = 0
             val packageName = packageName
-            val service = "$packageName/$packageName.${CallRecordingService::class.java.simpleName}"
+            val codePackageName = packageName.replace(".debug", "")
+            val service =
+                "$packageName/$codePackageName.${CallRecordingService::class.java.simpleName}"
             Timber.d("service = $service")
             val accessibilityFound = false
             try {
