@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_CHANNELS
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_ENCODING_BITRATE
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_SAMPLING_RATE
+import com.nonoka.nonorecorder.di.qualifier.GeneralSetting
 import com.nonoka.nonorecorder.di.qualifier.RecordingSetting
 import com.nonoka.nonorecorder.domain.entity.SettingCategory
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.AUDIO_CHANNELS
@@ -18,27 +19,37 @@ import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.SelectableSetting
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.NumericalSetting
 import com.nonoka.nonorecorder.infrastructure.ConfigDataSource
+import com.nonoka.nonorecorder.theme.NightMode
+import com.nonoka.nonorecorder.theme.NightMode.Dark
+import com.nonoka.nonorecorder.theme.NightMode.Light
+import com.nonoka.nonorecorder.theme.NightMode.System
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    @RecordingSetting private val recordingConfigDataSource: ConfigDataSource
+    @RecordingSetting private val recordingConfigDataSource: ConfigDataSource,
+    @GeneralSetting private val generalConfigDataSource: ConfigDataSource
 ) : ViewModel() {
     val recordingSettings = mutableStateListOf<SettingUiModel>()
     val storageSettings = mutableStateListOf<SettingUiModel>()
     val displaySettings = mutableStateListOf<SettingUiModel>()
 
+    private val _nightMode: MutableSharedFlow<NightMode> = MutableSharedFlow()
+    val nightMode: SharedFlow<NightMode> = _nightMode
+
     fun init() {
         initRecordingSettings()
         initDisplaySettings()
-        initGeneralSettings()
+        initStorageSettings()
     }
 
-    fun onSelectSettingOption(
+    fun onSelectRecordingSettingOption(
         settingOption: SelectableSettingOption,
         category: SettingCategory
     ) {
@@ -59,6 +70,39 @@ class SettingsViewModel @Inject constructor(
                         if (newOption is IntegerSettingOption) {
                             viewModelScope.launch(Dispatchers.IO) {
                                 recordingConfigDataSource.saveInt(category.name, newOption.value)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun onSelectDisplaySettingOption(
+        settingOption: SelectableSettingOption,
+        category: SettingCategory
+    ) {
+        displaySettings.indexOfFirst {
+            it.category == category
+        }.let { settingIndex ->
+            if (settingIndex >= 0) {
+                val selectableSetting = (displaySettings[settingIndex] as SelectableSetting)
+                selectableSetting.options.indexOfFirst {
+                    it.id == settingOption.id
+                }.let { optionIndex ->
+                    if (optionIndex >= 0) {
+                        val newOption = selectableSetting.options[optionIndex]
+                        displaySettings[settingIndex] = selectableSetting.copy(
+                            selectedIndex = optionIndex,
+                            label = newOption.label,
+                        )
+                        if (newOption is IntegerSettingOption) {
+                            viewModelScope.launch(Dispatchers.IO) {
+                                generalConfigDataSource.saveInt(category.name, newOption.value)
+
+                                if (category == DARK_THEME) {
+                                    _nightMode.emit(NightMode.fromId(newOption.value))
+                                }
                             }
                         }
                     }
@@ -94,6 +138,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun initRecordingSettings() {
+        recordingSettings.clear()
         val samplingRateList = arrayListOf<IntegerSettingOption>()
         samplingRateList.add(
             IntegerSettingOption(
@@ -205,41 +250,46 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun initDisplaySettings() {
-        val themeOptionList = arrayListOf<SelectableSettingOption>()
+        displaySettings.clear()
+        val themeOptionList = arrayListOf<IntegerSettingOption>()
         themeOptionList.add(
             IntegerSettingOption(
                 id = THEME_GROUP_ID + 1,
                 label = "System",
-                value = 0
+                value = System.id
             )
         )
         themeOptionList.add(
             IntegerSettingOption(
                 id = THEME_GROUP_ID + 2,
                 label = "Light",
-                value = 1
+                value = Light.id
             )
         )
         themeOptionList.add(
             IntegerSettingOption(
                 id = THEME_GROUP_ID + 3,
                 label = "Dark",
-                value = 3
+                value = Dark.id
             )
         )
+        val selectedNightMode = generalConfigDataSource.getInt(DARK_THEME.name, System.id)
+        val selectedNightModeIndex = themeOptionList.indexOfFirst {
+            it.value == selectedNightMode
+        }
         displaySettings.add(
             SelectableSetting(
                 category = DARK_THEME,
                 name = "Dark theme",
                 options = themeOptionList,
-                label = themeOptionList[0].label,
-                selectedIndex = 0
+                label = themeOptionList[selectedNightModeIndex].label,
+                selectedIndex = selectedNightModeIndex
             )
         )
     }
 
-    private fun initGeneralSettings() {
-
+    private fun initStorageSettings() {
+        storageSettings.clear()
     }
 
     private fun generateNumericLabel(value: Int, unit: String, zeroValue: String? = null): String {

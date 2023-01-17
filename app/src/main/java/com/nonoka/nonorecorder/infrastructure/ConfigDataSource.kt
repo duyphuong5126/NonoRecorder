@@ -8,6 +8,7 @@ import timber.log.Timber
 interface ConfigDataSource {
     suspend fun saveInt(key: String, value: Int)
     fun getInt(key: String, defaultValue: Int): Int
+    fun getInt(key: String): Int?
 
     companion object {
         const val recordingSetting = "recording_setting"
@@ -31,5 +32,11 @@ class ConfigDataSourceImpl @Inject constructor(
         val result = sharedPreferences.getInt(key, defaultValue)
         Timber.d("Config $key, value: $result")
         return result
+    }
+
+    override fun getInt(key: String): Int? {
+        val result = sharedPreferences.getInt(key, Int.MIN_VALUE)
+        Timber.d("Config $key, value: $result")
+        return if (result > Int.MIN_VALUE) result else null
     }
 }

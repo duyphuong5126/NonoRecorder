@@ -5,6 +5,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.nonoka.nonorecorder.theme.NightMode
 
 object Colors {
     val white = Color(0xFFFFFFFF)
@@ -16,6 +17,15 @@ object Colors {
     @Composable
     fun getColorScheme() =
         if (isSystemInDarkTheme()) getDarkColorScheme() else getLightColorScheme()
+
+    @Composable
+    fun getColorScheme(nightMode: NightMode): ColorScheme {
+        return when (nightMode) {
+            NightMode.Light -> getLightColorScheme()
+            NightMode.Dark -> getDarkColorScheme()
+            else -> if (isSystemInDarkTheme()) getDarkColorScheme() else getLightColorScheme()
+        }
+    }
 
     @Composable
     private fun getLightColorScheme(): ColorScheme {

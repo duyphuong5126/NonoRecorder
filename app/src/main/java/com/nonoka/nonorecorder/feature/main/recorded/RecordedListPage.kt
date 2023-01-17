@@ -36,7 +36,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.nonoka.nonorecorder.R
-import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.titleAppBar
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
@@ -52,34 +51,32 @@ fun RecordedListPage(
     onDeleteFile: (filePath: String) -> Unit,
     onRenameFile: (filePath: String, currentFileName: String) -> Unit,
 ) {
-    MaterialTheme(colorScheme = Colors.getColorScheme()) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(id = R.string.recorded_list_page_title),
-                            style = MaterialTheme.typography.titleAppBar,
-                        )
-                    },
-                    colors = TopAppBarDefaults.smallTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    ),
-                )
-            },
-        ) {
-            if (recordedListViewModel.recordedList.isNotEmpty()) {
-                RecordedList(
-                    recordedListViewModel = recordedListViewModel,
-                    paddingValues = it,
-                    onStartPlaying = onStartPlaying,
-                    onDeleteFile = onDeleteFile,
-                    onRenameFile = onRenameFile
-                )
-            } else {
-                EmptyRecordedList(paddingValues = it)
-            }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.recorded_list_page_title),
+                        style = MaterialTheme.typography.titleAppBar,
+                    )
+                },
+                colors = TopAppBarDefaults.smallTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                ),
+            )
+        },
+    ) {
+        if (recordedListViewModel.recordedList.isNotEmpty()) {
+            RecordedList(
+                recordedListViewModel = recordedListViewModel,
+                paddingValues = it,
+                onStartPlaying = onStartPlaying,
+                onDeleteFile = onDeleteFile,
+                onRenameFile = onRenameFile
+            )
+        } else {
+            EmptyRecordedList(paddingValues = it)
         }
     }
 }

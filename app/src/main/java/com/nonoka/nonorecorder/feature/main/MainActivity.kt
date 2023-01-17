@@ -41,7 +41,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.nonoka.nonorecorder.App
 import com.nonoka.nonorecorder.CallRecordingService
+import com.nonoka.nonorecorder.NonoTheme
 import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
@@ -155,6 +157,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                settingsViewModel.nightMode.collect {
+                    (applicationContext as App).nightModeSetting = it
+                }
+            }
+        }
 
         val defaultNavigationRoutes =
             arrayOf(
@@ -164,9 +173,8 @@ class MainActivity : AppCompatActivity() {
             )
         setContent {
             val navController = rememberNavController()
-            MaterialTheme(
-                colorScheme = Colors.getColorScheme(),
-                typography = MaterialTheme.brandTypography()
+            NonoTheme(
+                context = this
             ) {
                 Scaffold(
                     bottomBar = {

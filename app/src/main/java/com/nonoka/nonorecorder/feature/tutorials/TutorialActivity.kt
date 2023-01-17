@@ -29,11 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import com.nonoka.nonorecorder.NonoTheme
 import com.nonoka.nonorecorder.R
-import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.IntentConstants.extraTutorialModeId
-import com.nonoka.nonorecorder.constant.brandTypography
 import com.nonoka.nonorecorder.constant.titleAppBar
 
 class TutorialActivity : AppCompatActivity() {
@@ -61,9 +60,8 @@ class TutorialActivity : AppCompatActivity() {
     fun TutorialsPage(
         mode: TutorialMode
     ) {
-        MaterialTheme(
-            colorScheme = Colors.getColorScheme(),
-            typography = MaterialTheme.brandTypography(),
+        NonoTheme(
+            context = this,
         ) {
             Scaffold(
                 topBar = {

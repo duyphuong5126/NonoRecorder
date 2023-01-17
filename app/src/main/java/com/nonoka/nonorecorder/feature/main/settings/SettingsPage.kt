@@ -40,9 +40,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.nonoka.nonorecorder.R
-import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.titleAppBar
+import com.nonoka.nonorecorder.feature.main.settings.uimodel.SelectableSettingOption
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.SelectableSetting
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.NumericalSetting
@@ -51,122 +51,148 @@ import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.Swit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPage(settingsViewModel: SettingsViewModel) {
-    MaterialTheme(colorScheme = Colors.getColorScheme()) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(id = R.string.settings_page_title),
-                            style = MaterialTheme.typography.titleAppBar,
-                        )
-                    },
-                    colors = TopAppBarDefaults.smallTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    ),
-                )
-            },
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.settings_page_title),
+                        style = MaterialTheme.typography.titleAppBar,
+                    )
+                },
+                colors = TopAppBarDefaults.smallTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                ),
+            )
+        },
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .padding(it)
+                .padding(horizontal = Dimens.normalSpace),
+            verticalArrangement = Arrangement.Top,
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(it)
-                    .padding(horizontal = Dimens.normalSpace),
-                verticalArrangement = Arrangement.Top,
-            ) {
-                item {
-                    Text(
-                        text = stringResource(id = R.string.video_recording_settings_area),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+            item {
+                Text(
+                    text = stringResource(id = R.string.video_recording_settings_area),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
 
-                item {
-                    Box(modifier = Modifier.height(Dimens.mediumSpace))
-                }
+            item {
+                Box(modifier = Modifier.height(Dimens.mediumSpace))
+            }
 
-                itemsIndexed(
-                    items = settingsViewModel.recordingSettings,
-                    key = { _, setting: SettingUiModel ->
-                        setting.category.name
-                    }) { index, setting ->
-                    when (index) {
-                        0 -> {
-                            Column(
-                                modifier = Modifier
-                                    .clip(
-                                        shape = RoundedCornerShape(
-                                            topStart = Dimens.normalSpace,
-                                            topEnd = Dimens.normalSpace,
-                                        )
+            itemsIndexed(
+                items = settingsViewModel.recordingSettings,
+                key = { _, setting: SettingUiModel ->
+                    setting.category.name
+                }) { index, setting ->
+                when (index) {
+                    0 -> {
+                        Column(
+                            modifier = Modifier
+                                .clip(
+                                    shape = RoundedCornerShape(
+                                        topStart = Dimens.normalSpace,
+                                        topEnd = Dimens.normalSpace,
                                     )
-                                    .background(color = MaterialTheme.colorScheme.surface)
-                            ) {
-                                SettingItem(
-                                    settingsViewModel = settingsViewModel, setting = setting,
                                 )
-                            }
-                        }
-                        settingsViewModel.recordingSettings.size - 1 -> {
-                            Column(
-                                modifier = Modifier
-                                    .clip(
-                                        shape = RoundedCornerShape(
-                                            bottomStart = Dimens.normalSpace,
-                                            bottomEnd = Dimens.normalSpace,
-                                        )
+                                .background(color = MaterialTheme.colorScheme.surface)
+                        ) {
+                            SettingItem(
+                                settingsViewModel = settingsViewModel,
+                                setting = setting,
+                                onSelectOption = { settingOption ->
+                                    settingsViewModel.onSelectRecordingSettingOption(
+                                        settingOption = settingOption,
+                                        category = setting.category,
                                     )
-                                    .background(color = MaterialTheme.colorScheme.surface)
-                            ) {
-                                SettingItemDivider()
-
-                                SettingItem(
-                                    settingsViewModel = settingsViewModel, setting = setting,
-                                )
-                            }
-                        }
-                        else -> {
-                            Column(
-                                modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)
-                            ) {
-                                SettingItemDivider()
-
-                                SettingItem(
-                                    settingsViewModel = settingsViewModel, setting = setting,
-                                )
-                            }
-                        }
-                    }
-                }
-
-                item {
-                    Box(modifier = Modifier.height(Dimens.largeSpace))
-                }
-
-                item {
-                    Text(
-                        text = stringResource(id = R.string.display_settings_area),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-
-                item {
-                    Box(modifier = Modifier.height(Dimens.mediumSpace))
-                }
-
-                item {
-                    Column(
-                        modifier = Modifier
-                            .clip(
-                                shape = RoundedCornerShape(Dimens.normalSpace)
+                                }
                             )
-                            .background(color = MaterialTheme.colorScheme.surface)
-                    ) {
-                        SettingItem(
-                            settingsViewModel = settingsViewModel,
-                            setting = settingsViewModel.displaySettings.first(),
-                        )
+                        }
                     }
+                    settingsViewModel.recordingSettings.size - 1 -> {
+                        Column(
+                            modifier = Modifier
+                                .clip(
+                                    shape = RoundedCornerShape(
+                                        bottomStart = Dimens.normalSpace,
+                                        bottomEnd = Dimens.normalSpace,
+                                    )
+                                )
+                                .background(color = MaterialTheme.colorScheme.surface)
+                        ) {
+                            SettingItemDivider()
+
+                            SettingItem(
+                                settingsViewModel = settingsViewModel,
+                                setting = setting,
+                                onSelectOption = { settingOption ->
+                                    settingsViewModel.onSelectRecordingSettingOption(
+                                        settingOption = settingOption,
+                                        category = setting.category,
+                                    )
+                                },
+                            )
+                        }
+                    }
+                    else -> {
+                        Column(
+                            modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)
+                        ) {
+                            SettingItemDivider()
+
+                            SettingItem(
+                                settingsViewModel = settingsViewModel,
+                                setting = setting,
+                                onSelectOption = { settingOption ->
+                                    settingsViewModel.onSelectRecordingSettingOption(
+                                        settingOption = settingOption,
+                                        category = setting.category,
+                                    )
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                Box(modifier = Modifier.height(Dimens.largeSpace))
+            }
+
+            item {
+                Text(
+                    text = stringResource(id = R.string.display_settings_area),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+
+            item {
+                Box(modifier = Modifier.height(Dimens.mediumSpace))
+            }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .clip(
+                            shape = RoundedCornerShape(Dimens.normalSpace)
+                        )
+                        .background(color = MaterialTheme.colorScheme.surface)
+                ) {
+                    val setting = settingsViewModel.displaySettings.first()
+                    SettingItem(
+                        settingsViewModel = settingsViewModel,
+                        setting = setting,
+                        onSelectOption = { settingOption ->
+                            settingsViewModel.onSelectDisplaySettingOption(
+                                settingOption = settingOption,
+                                category = setting.category,
+                            )
+                        },
+                    )
                 }
             }
         }
@@ -175,17 +201,25 @@ fun SettingsPage(settingsViewModel: SettingsViewModel) {
 
 @Composable
 private fun SettingItem(
-    settingsViewModel: SettingsViewModel, setting: SettingUiModel
+    settingsViewModel: SettingsViewModel,
+    setting: SettingUiModel,
+    onSelectOption: (settingOption: SelectableSettingOption) -> Unit,
 ) {
     when (setting) {
         is SelectableSetting -> DefaultSettingItem(
-            settingsViewModel = settingsViewModel, setting = setting
+            settingsViewModel = settingsViewModel,
+            setting = setting,
+            onSelectOption = onSelectOption
         )
         is NumericalSetting -> DefaultSettingItem(
-            settingsViewModel = settingsViewModel, setting = setting
+            settingsViewModel = settingsViewModel,
+            setting = setting,
+            onSelectOption = onSelectOption
         )
         is SwitchSetting -> DefaultSettingItem(
-            settingsViewModel = settingsViewModel, setting = setting
+            settingsViewModel = settingsViewModel,
+            setting = setting,
+            onSelectOption = onSelectOption
         )
     }
 }
@@ -193,18 +227,23 @@ private fun SettingItem(
 
 @Composable
 private fun DefaultSettingItem(
-    settingsViewModel: SettingsViewModel, setting: SettingUiModel
+    settingsViewModel: SettingsViewModel,
+    setting: SettingUiModel,
+    onSelectOption: (settingOption: SelectableSettingOption) -> Unit,
 ) {
     val dialogModel = remember { mutableStateOf<SettingUiModel?>(null) }
     if (dialogModel.value != null) {
         val settingModel = dialogModel.value
         if (settingModel is SelectableSetting) {
             MultipleChoicesSettingDialog(
-                settingsViewModel = settingsViewModel,
                 selectableSetting = settingModel,
                 onDismiss = {
                     dialogModel.value = null
                 },
+                onSelectOption = {
+                    onSelectOption(it)
+                    dialogModel.value = null
+                }
             )
         } else if (setting is NumericalSetting) {
             NumericalSettingDialog(
@@ -259,8 +298,8 @@ private fun SettingItemDivider() {
 
 @Composable
 private fun MultipleChoicesSettingDialog(
-    settingsViewModel: SettingsViewModel,
     selectableSetting: SelectableSetting,
+    onSelectOption: (settingOption: SelectableSettingOption) -> Unit,
     onDismiss: () -> Unit,
     properties: DialogProperties = DialogProperties(),
 ) {
@@ -302,11 +341,7 @@ private fun MultipleChoicesSettingDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                settingsViewModel.onSelectSettingOption(
-                                    settingOption = settingOption,
-                                    category = selectableSetting.category,
-                                )
-                                onDismiss()
+                                onSelectOption(settingOption)
                             }
                             .padding(
                                 horizontal = Dimens.largeSpace, vertical = Dimens.normalSpace
