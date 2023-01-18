@@ -1,12 +1,14 @@
 package com.nonoka.nonorecorder.feature.main
 
 import android.Manifest.permission.RECORD_AUDIO
+import android.Manifest.permission.POST_NOTIFICATIONS
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
@@ -14,6 +16,7 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.padding
@@ -136,6 +139,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (shouldShowRequestPermissionRationale(POST_NOTIFICATIONS)) {
+                MaterialAlertDialogBuilder(this).setTitle(R.string.permission_required_title)
+                    .setMessage(R.string.post_notification_permission_required_message)
+                    .setPositiveButton(R.string.action_ok) { _, _ ->
+                        handleNotificationPermission()
+                    }.show()
+            } else {
+                handleNotificationPermission()
+            }
+        }
         homeViewModel.initPermission(
             canDrawOverlay = canDrawOverlays,
             canRecordAudio = isRecordingPermissionGranted,
@@ -338,6 +352,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun handleNotificationPermission() {
+        ActivityCompat.requestPermissions(
+            this, arrayOf(POST_NOTIFICATIONS), POST_NOTIFICATION_PERMISSION_REQUEST_CODE
+        )
+    }
+
     private fun getIconRes(route: MainNavigationRoute): Int {
         return when (route) {
             is MainNavigationRoute.HomeRouteMain -> R.drawable.ic_home_solid_24dp
@@ -378,6 +399,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val URGENT_AUDIO_PERMISSION_REQUEST_CODE = 3726
+        private const val POST_NOTIFICATION_PERMISSION_REQUEST_CODE = 3734
 
         @JvmStatic
         fun start(context: Context) {
