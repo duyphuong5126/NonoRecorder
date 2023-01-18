@@ -180,7 +180,8 @@ class RecordedListViewModel : ViewModel() {
             }
             Timber.d("renamedFile=$renamedFile")
             if (renamedFile != null) {
-                recordedList.forEachIndexed { index, recordedItem ->
+                for (index in recordedList.indices) {
+                    val recordedItem = recordedList[index]
                     if (recordedItem is RecordedFileUiModel && recordedItem.filePath == filePath) {
                         recordedList[index] = recordedItem.copy(
                             name = renamedFile.name,
