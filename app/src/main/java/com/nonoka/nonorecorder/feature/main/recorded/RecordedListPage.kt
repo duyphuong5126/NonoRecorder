@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +43,10 @@ import com.nonoka.nonorecorder.constant.titleAppBar
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.BrokenRecordedFileUiModel
+import com.nonoka.nonorecorder.isDarkTheme
+import com.nonoka.nonorecorder.shared.GifImage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,9 +117,39 @@ private fun RecordedList(
     onRenameFile: (filePath: String, currentName: String) -> Unit,
     paddingValues: PaddingValues
 ) {
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
     LazyColumn(
-        modifier = Modifier.padding(paddingValues), verticalArrangement = Arrangement.Top,
+        modifier = Modifier.padding(paddingValues),
+        verticalArrangement = Arrangement.Top,
+        state = listState
     ) {
+        if (recordedListViewModel.isProcessingAudio) {
+            item {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    GifImage(
+                        gifResId = if (isDarkTheme()) R.drawable.ic_loading_dark_24dp else R.drawable.ic_loading_light_24dp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Box(modifier = Modifier.height(Dimens.normalSpace))
+
+                    Text(
+                        text = "Processing new file",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+
+                    Box(modifier = Modifier.height(Dimens.normalSpace))
+                }
+            }
+            coroutineScope.launch {
+                delay(500)
+                listState.animateScrollToItem(0)
+            }
+        }
+
         items(items = recordedListViewModel.recordedList, key = { item ->
             item.hashCode()
         }) { recordedItem ->

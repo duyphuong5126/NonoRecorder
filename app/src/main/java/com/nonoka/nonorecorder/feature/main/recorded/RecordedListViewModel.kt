@@ -1,7 +1,10 @@
 package com.nonoka.nonorecorder.feature.main.recorded
 
 import android.media.MediaMetadataRetriever
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nonoka.nonorecorder.constant.FileConstants.recordedFolder
@@ -22,6 +25,7 @@ import timber.log.Timber
 
 class RecordedListViewModel : ViewModel() {
     val recordedList = mutableStateListOf<RecordedItem>()
+    var isProcessingAudio by mutableStateOf(false)
 
     private val _startPlayingList: MutableSharedFlow<StartPlayingList> = MutableSharedFlow()
     val startPlayingList: SharedFlow<StartPlayingList> = _startPlayingList

@@ -50,6 +50,7 @@ import com.nonoka.nonorecorder.NonoTheme
 import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
+import com.nonoka.nonorecorder.constant.IntentConstants.actionProcessingRecordedFile
 import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
 import com.nonoka.nonorecorder.databinding.LayoutDialogInputBinding
 import com.nonoka.nonorecorder.feature.main.home.HomePage
@@ -134,6 +135,7 @@ class MainActivity : AppCompatActivity() {
             if (intent?.action == actionFinishedRecording) {
                 intent.getStringExtra(extraDirectory)?.let(recordedListViewModel::refresh)
             }
+            recordedListViewModel.isProcessingAudio = intent?.action == actionProcessingRecordedFile
         }
     }
 
@@ -313,6 +315,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         registerReceiver(recordingFinishedReceiver, IntentFilter(actionFinishedRecording))
+        registerReceiver(recordingFinishedReceiver, IntentFilter(actionProcessingRecordedFile))
     }
 
     override fun onPause() {

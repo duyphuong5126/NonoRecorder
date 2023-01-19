@@ -11,6 +11,7 @@ import com.nonoka.nonorecorder.constant.FileConstants.mp3FileExt
 import com.nonoka.nonorecorder.constant.FileConstants.mp4FileExt
 import com.nonoka.nonorecorder.constant.FileConstants.recordedFolder
 import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
+import com.nonoka.nonorecorder.constant.IntentConstants.actionProcessingRecordedFile
 import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.SAMPLING_RATE
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.AUDIO_CHANNELS
@@ -103,6 +104,9 @@ class VideoCallRecorder(
 
     override fun stopCallRecording(context: Context) {
         Timber.d("Recording>>> stopping video recorder")
+        context.sendBroadcast(Intent(actionProcessingRecordedFile).apply {
+            putExtra(extraDirectory, recordedVideo.parentFile?.absolutePath)
+        })
         try {
             videoRecorder?.stop()
             videoRecorder?.release()
@@ -127,7 +131,7 @@ class VideoCallRecorder(
         Timber.d("Recording>>> video recorder stopped")
 
         ioScope.launch {
-            delay(5000)
+            delay(10000)
             context.sendBroadcast(Intent(actionFinishedRecording).apply {
                 putExtra(extraDirectory, recordedVideo.parentFile?.absolutePath)
             })
