@@ -15,14 +15,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -35,17 +34,15 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.nonoka.nonorecorder.R
+import com.nonoka.nonorecorder.constant.Colors
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.titleAppBar
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SelectableSettingOption
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.SelectableSetting
-import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.NumericalSetting
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.SwitchSetting
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,12 +101,6 @@ fun SettingsPage(settingsViewModel: SettingsViewModel) {
                             SettingItem(
                                 settingsViewModel = settingsViewModel,
                                 setting = setting,
-                                onSelectOption = { settingOption ->
-                                    settingsViewModel.onSelectRecordingSettingOption(
-                                        settingOption = settingOption,
-                                        category = setting.category,
-                                    )
-                                }
                             )
                         }
                     }
@@ -129,12 +120,6 @@ fun SettingsPage(settingsViewModel: SettingsViewModel) {
                             SettingItem(
                                 settingsViewModel = settingsViewModel,
                                 setting = setting,
-                                onSelectOption = { settingOption ->
-                                    settingsViewModel.onSelectRecordingSettingOption(
-                                        settingOption = settingOption,
-                                        category = setting.category,
-                                    )
-                                },
                             )
                         }
                     }
@@ -147,12 +132,6 @@ fun SettingsPage(settingsViewModel: SettingsViewModel) {
                             SettingItem(
                                 settingsViewModel = settingsViewModel,
                                 setting = setting,
-                                onSelectOption = { settingOption ->
-                                    settingsViewModel.onSelectRecordingSettingOption(
-                                        settingOption = settingOption,
-                                        category = setting.category,
-                                    )
-                                },
                             )
                         }
                     }
@@ -186,13 +165,40 @@ fun SettingsPage(settingsViewModel: SettingsViewModel) {
                     SettingItem(
                         settingsViewModel = settingsViewModel,
                         setting = setting,
-                        onSelectOption = { settingOption ->
-                            settingsViewModel.onSelectDisplaySettingOption(
-                                settingOption = settingOption,
-                                category = setting.category,
-                            )
-                        },
                     )
+                }
+            }
+
+            val storageLocationSetting = settingsViewModel.storageLocationSetting
+            if (storageLocationSetting != null) {
+                item {
+                    Box(modifier = Modifier.height(Dimens.largeSpace))
+                }
+
+                item {
+                    Text(
+                        text = stringResource(id = R.string.storage_settings_area),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                item {
+                    Box(modifier = Modifier.height(Dimens.mediumSpace))
+                }
+
+                item {
+                    Column(
+                        modifier = Modifier
+                            .clip(
+                                shape = RoundedCornerShape(Dimens.normalSpace)
+                            )
+                            .background(color = MaterialTheme.colorScheme.surface)
+                    ) {
+                        SettingItem(
+                            settingsViewModel = settingsViewModel,
+                            setting = storageLocationSetting,
+                        )
+                    }
                 }
             }
         }
@@ -203,57 +209,40 @@ fun SettingsPage(settingsViewModel: SettingsViewModel) {
 private fun SettingItem(
     settingsViewModel: SettingsViewModel,
     setting: SettingUiModel,
-    onSelectOption: (settingOption: SelectableSettingOption) -> Unit,
 ) {
     when (setting) {
-        is SelectableSetting -> DefaultSettingItem(
+        is SelectableSetting -> SelectableSettingItem(
             settingsViewModel = settingsViewModel,
             setting = setting,
-            onSelectOption = onSelectOption
         )
-        is NumericalSetting -> DefaultSettingItem(
+        is SwitchSetting -> SwitchSettingItem(
             settingsViewModel = settingsViewModel,
             setting = setting,
-            onSelectOption = onSelectOption
-        )
-        is SwitchSetting -> DefaultSettingItem(
-            settingsViewModel = settingsViewModel,
-            setting = setting,
-            onSelectOption = onSelectOption
         )
     }
 }
 
-
 @Composable
-private fun DefaultSettingItem(
+private fun SelectableSettingItem(
     settingsViewModel: SettingsViewModel,
-    setting: SettingUiModel,
-    onSelectOption: (settingOption: SelectableSettingOption) -> Unit,
+    setting: SelectableSetting,
 ) {
-    val dialogModel = remember { mutableStateOf<SettingUiModel?>(null) }
-    if (dialogModel.value != null) {
-        val settingModel = dialogModel.value
-        if (settingModel is SelectableSetting) {
-            MultipleChoicesSettingDialog(
-                selectableSetting = settingModel,
-                onDismiss = {
-                    dialogModel.value = null
-                },
-                onSelectOption = {
-                    onSelectOption(it)
-                    dialogModel.value = null
-                }
-            )
-        } else if (setting is NumericalSetting) {
-            NumericalSettingDialog(
-                settingsViewModel = settingsViewModel,
-                numericalSetting = setting,
-                onDismiss = {
-                    dialogModel.value = null
-                },
-            )
-        }
+    val dialogModel = remember { mutableStateOf<SelectableSetting?>(null) }
+    val settingModel = dialogModel.value
+    if (settingModel != null) {
+        MultipleChoicesSettingDialog(
+            selectableSetting = settingModel,
+            onDismiss = {
+                dialogModel.value = null
+            },
+            onSelectOption = {
+                settingsViewModel.onSelectRecordingSettingOption(
+                    settingOption = it,
+                    category = setting.category,
+                )
+                dialogModel.value = null
+            }
+        )
     }
 
     Surface(
@@ -261,9 +250,7 @@ private fun DefaultSettingItem(
             .fillMaxWidth()
             .clickable(
                 onClick = {
-                    if (setting is SelectableSetting || setting is NumericalSetting) {
-                        dialogModel.value = setting
-                    }
+                    dialogModel.value = setting
                 },
             )
             .padding(Dimens.normalSpace),
@@ -280,6 +267,43 @@ private fun DefaultSettingItem(
                 text = setting.label,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.tertiary
+            )
+        }
+    }
+}
+
+@Composable
+private fun SwitchSettingItem(
+    settingsViewModel: SettingsViewModel,
+    setting: SwitchSetting,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(Dimens.normalSpace),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = setting.name,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .padding(end = Dimens.mediumSpace)
+                    .weight(1f),
+            )
+
+            Switch(
+                checked = setting.value,
+                onCheckedChange = {
+                    settingsViewModel.onSwitchStateChange(setting, it)
+                },
+                colors = SwitchDefaults.colors(
+                    uncheckedThumbColor = Colors.white,
+                    uncheckedBorderColor = Colors.switchUnselectedColor,
+                    uncheckedTrackColor = Colors.switchUnselectedColor
+                ),
+                modifier = Modifier.padding(end = Dimens.mediumSpace)
             )
         }
     }
@@ -376,89 +400,6 @@ private fun MultipleChoicesSettingDialog(
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun NumericalSettingDialog(
-    settingsViewModel: SettingsViewModel,
-    numericalSetting: NumericalSetting,
-    onDismiss: () -> Unit,
-    properties: DialogProperties = DialogProperties(),
-) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = properties.let {
-            DialogProperties(
-                dismissOnBackPress = it.dismissOnBackPress,
-                dismissOnClickOutside = it.dismissOnClickOutside,
-                securePolicy = it.securePolicy,
-                usePlatformDefaultWidth = false
-            )
-        },
-    ) {
-        Surface(
-            modifier = Modifier
-                .padding(Dimens.normalSpace)
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(Dimens.largeSpace),
-        ) {
-            Column {
-                Text(
-                    text = numericalSetting.name,
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier
-                        .padding(
-                            vertical = Dimens.normalSpace,
-                            horizontal = Dimens.largeSpace,
-                        )
-                        .fillMaxWidth()
-                )
-
-                val editText = remember { mutableStateOf(numericalSetting.inputValue) }
-                OutlinedTextField(
-                    value = editText.value,
-                    onValueChange = {
-                        editText.value = it
-                    },
-                    placeholder = {
-                        Text(text = numericalSetting.inputHint)
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done,
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            settingsViewModel.onChangeNumericalSetting(
-                                numericalSetting.category,
-                                editText.value,
-                            )
-                            onDismiss()
-                        },
-                    ),
-                    maxLines = 1,
-                    modifier = Modifier
-                        .padding(horizontal = Dimens.normalSpace)
-                        .fillMaxWidth()
-                )
-
-                TextButton(
-                    modifier = Modifier
-                        .padding(
-                            horizontal = Dimens.normalSpace,
-                            vertical = Dimens.mediumSpace,
-                        )
-                        .fillMaxWidth(),
-                    onClick = onDismiss,
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.action_cancel),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
                 }
             }
         }

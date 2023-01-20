@@ -7,8 +7,10 @@ import timber.log.Timber
 
 interface ConfigDataSource {
     suspend fun saveInt(key: String, value: Int)
+    suspend fun saveBoolean(key: String, value: Boolean)
     fun getInt(key: String, defaultValue: Int): Int
     fun getInt(key: String): Int?
+    fun getBoolean(key: String, defaultValue: Boolean): Boolean
 
     companion object {
         const val recordingSetting = "recording_setting"
@@ -28,6 +30,11 @@ class ConfigDataSourceImpl @Inject constructor(
         Timber.d("Result of saving config ($key, $value): $result")
     }
 
+    override suspend fun saveBoolean(key: String, value: Boolean) {
+        val result = sharedPreferences.edit().putBoolean(key, value).commit()
+        Timber.d("Result of saving config ($key, $value): $result")
+    }
+
     override fun getInt(key: String, defaultValue: Int): Int {
         val result = sharedPreferences.getInt(key, defaultValue)
         Timber.d("Config $key, value: $result")
@@ -38,5 +45,11 @@ class ConfigDataSourceImpl @Inject constructor(
         val result = sharedPreferences.getInt(key, Int.MIN_VALUE)
         Timber.d("Config $key, value: $result")
         return if (result > Int.MIN_VALUE) result else null
+    }
+
+    override fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+        val result = sharedPreferences.getBoolean(key, defaultValue)
+        Timber.d("Config $key, value: $result")
+        return result
     }
 }

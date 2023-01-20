@@ -102,7 +102,7 @@ private fun EmptyRecordedList(paddingValues: PaddingValues) {
         Box(modifier = Modifier.height(Dimens.normalSpace))
 
         Text(
-            text = "Your VOIP calls will be recorded automatically.",
+            text = "Your VOIP calls will be auto-recorded.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )

@@ -14,6 +14,8 @@ object Colors {
 
     val successColor = Color(0xFF4CAF50)
 
+    val switchUnselectedColor = Color(0xFFE0E0E0)
+
     @Composable
     fun getColorScheme() =
         if (isSystemInDarkTheme()) getDarkColorScheme() else getLightColorScheme()

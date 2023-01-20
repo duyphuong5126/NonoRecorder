@@ -1,6 +1,9 @@
 package com.nonoka.nonorecorder.feature.main.settings
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_CHANNELS
@@ -13,11 +16,12 @@ import com.nonoka.nonorecorder.domain.entity.SettingCategory.AUDIO_CHANNELS
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.DARK_THEME
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.SAMPLING_RATE
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.ENCODING_BITRATE
+import com.nonoka.nonorecorder.domain.entity.SettingCategory.USE_SHARED_STORAGE
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SelectableSettingOption
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SelectableSettingOption.IntegerSettingOption
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.SelectableSetting
-import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.NumericalSetting
+import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.SwitchSetting
 import com.nonoka.nonorecorder.infrastructure.ConfigDataSource
 import com.nonoka.nonorecorder.theme.NightMode
 import com.nonoka.nonorecorder.theme.NightMode.Dark
@@ -29,7 +33,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -37,8 +40,9 @@ class SettingsViewModel @Inject constructor(
     @GeneralSetting private val generalConfigDataSource: ConfigDataSource
 ) : ViewModel() {
     val recordingSettings = mutableStateListOf<SettingUiModel>()
-    val storageSettings = mutableStateListOf<SettingUiModel>()
     val displaySettings = mutableStateListOf<SettingUiModel>()
+
+    var storageLocationSetting by mutableStateOf<SwitchSetting?>(null)
 
     private val _nightMode: MutableSharedFlow<NightMode> = MutableSharedFlow()
     val nightMode: SharedFlow<NightMode> = _nightMode
@@ -53,17 +57,18 @@ class SettingsViewModel @Inject constructor(
         settingOption: SelectableSettingOption,
         category: SettingCategory
     ) {
-        recordingSettings.indexOfFirst {
+        val targetSettingList = if (category == DARK_THEME) displaySettings else recordingSettings
+        targetSettingList.indexOfFirst {
             it.category == category
         }.let { settingIndex ->
             if (settingIndex >= 0) {
-                val selectableSetting = (recordingSettings[settingIndex] as SelectableSetting)
+                val selectableSetting = (targetSettingList[settingIndex] as SelectableSetting)
                 selectableSetting.options.indexOfFirst {
                     it.id == settingOption.id
                 }.let { optionIndex ->
                     if (optionIndex >= 0) {
                         val newOption = selectableSetting.options[optionIndex]
-                        recordingSettings[settingIndex] = selectableSetting.copy(
+                        targetSettingList[settingIndex] = selectableSetting.copy(
                             selectedIndex = optionIndex,
                             label = newOption.label,
                         )
@@ -71,36 +76,8 @@ class SettingsViewModel @Inject constructor(
                             viewModelScope.launch(Dispatchers.IO) {
                                 recordingConfigDataSource.saveInt(category.name, newOption.value)
                             }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    fun onSelectDisplaySettingOption(
-        settingOption: SelectableSettingOption,
-        category: SettingCategory
-    ) {
-        displaySettings.indexOfFirst {
-            it.category == category
-        }.let { settingIndex ->
-            if (settingIndex >= 0) {
-                val selectableSetting = (displaySettings[settingIndex] as SelectableSetting)
-                selectableSetting.options.indexOfFirst {
-                    it.id == settingOption.id
-                }.let { optionIndex ->
-                    if (optionIndex >= 0) {
-                        val newOption = selectableSetting.options[optionIndex]
-                        displaySettings[settingIndex] = selectableSetting.copy(
-                            selectedIndex = optionIndex,
-                            label = newOption.label,
-                        )
-                        if (newOption is IntegerSettingOption) {
-                            viewModelScope.launch(Dispatchers.IO) {
-                                generalConfigDataSource.saveInt(category.name, newOption.value)
-
-                                if (category == DARK_THEME) {
+                            if (category == DARK_THEME) {
+                                viewModelScope.launch(Dispatchers.Default) {
                                     _nightMode.emit(NightMode.fromId(newOption.value))
                                 }
                             }
@@ -111,27 +88,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun onChangeNumericalSetting(
-        category: SettingCategory,
-        rawValue: String,
-    ) {
-        recordingSettings.indexOfFirst {
-            it.category == category
-        }.let { settingIndex ->
-            if (settingIndex >= 0) {
-                val numericalSetting = (recordingSettings[settingIndex] as NumericalSetting)
-                try {
-                    val value = if (rawValue.isBlank()) 0 else rawValue.toInt()
-                    recordingSettings[settingIndex] = numericalSetting.copy(
-                        inputValue = rawValue,
-                        label = generateNumericLabel(
-                            value = value,
-                            unit = numericalSetting.unit,
-                            zeroValue = "Default"
-                        )
-                    )
-                } catch (error: Throwable) {
-                    Timber.d("Error in updating value $rawValue to $category: $error")
+    fun onSwitchStateChange(switchSetting: SwitchSetting, newState: Boolean) {
+        if (switchSetting.category == USE_SHARED_STORAGE) {
+            storageLocationSetting?.let {
+                storageLocationSetting = it.copy(value = newState)
+                viewModelScope.launch {
+                    generalConfigDataSource.saveBoolean(USE_SHARED_STORAGE.name, newState)
                 }
             }
         }
@@ -289,11 +251,11 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun initStorageSettings() {
-        storageSettings.clear()
-    }
-
-    private fun generateNumericLabel(value: Int, unit: String, zeroValue: String? = null): String {
-        return if (value == 0 && zeroValue != null) zeroValue else "$value ($unit)"
+        storageLocationSetting = SwitchSetting(
+            category = USE_SHARED_STORAGE,
+            name = "Store recorded files in\na public folder",
+            value = generalConfigDataSource.getBoolean(USE_SHARED_STORAGE.name, false)
+        )
     }
 
     companion object {

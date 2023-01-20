@@ -2,6 +2,7 @@ package com.nonoka.nonorecorder.constant
 
 object FileConstants {
     const val recordedFolder = "recorded"
+    const val externalRecordedFolder = "NonoRecorder"
 
     const val pcmFileExt = ".pcm"
     const val wavFileExt = ".wav"

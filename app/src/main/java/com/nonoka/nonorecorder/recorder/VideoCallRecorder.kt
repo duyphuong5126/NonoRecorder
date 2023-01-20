@@ -4,6 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_CHANNELS
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_ENCODING_BITRATE
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_SAMPLING_RATE
@@ -13,10 +16,14 @@ import com.nonoka.nonorecorder.constant.FileConstants.recordedFolder
 import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
 import com.nonoka.nonorecorder.constant.IntentConstants.actionProcessingRecordedFile
 import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
-import com.nonoka.nonorecorder.domain.entity.SettingCategory.SAMPLING_RATE
+import com.nonoka.nonorecorder.di.qualifier.GeneralSetting
+import com.nonoka.nonorecorder.di.qualifier.RecordingSetting
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.AUDIO_CHANNELS
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.ENCODING_BITRATE
+import com.nonoka.nonorecorder.domain.entity.SettingCategory.SAMPLING_RATE
+import com.nonoka.nonorecorder.domain.entity.SettingCategory.USE_SHARED_STORAGE
 import com.nonoka.nonorecorder.infrastructure.ConfigDataSource
+import com.nonoka.nonorecorder.shared.createSharedAudioFile
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -30,8 +37,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+
 class VideoCallRecorder(
-    private val configDataSource: ConfigDataSource
+    @RecordingSetting
+    private val configDataSource: ConfigDataSource,
+    @GeneralSetting
+    private val generalConfigDataSource: ConfigDataSource
 ) : CallRecorder {
     private var videoRecorder: MediaRecorder? = null
     private lateinit var recordedVideo: File
@@ -43,6 +54,8 @@ class VideoCallRecorder(
 
     private val isRecordingAudio = AtomicBoolean(false)
 
+    private val useSharedStorage = AtomicBoolean(false)
+
     private val filePartIndex = AtomicInteger(0)
 
     override val isRecording: Boolean
@@ -51,6 +64,10 @@ class VideoCallRecorder(
     override fun startCallRecording(context: Context) {
         Timber.d("Recording>>> starting video recorder")
         filePartIndex.getAndSet(0)
+        useSharedStorage.compareAndSet(
+            false,
+            generalConfigDataSource.getBoolean(USE_SHARED_STORAGE.name, false)
+        )
         try {
             @Suppress("DEPRECATION")
             val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -119,6 +136,27 @@ class VideoCallRecorder(
                 useVideo = false,
                 useAudio = true
             )
+            if (useSharedStorage.get()) {
+                try {
+                    context.createSharedAudioFile(outputMp3File)
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(
+                            context,
+                            "Save file ${outputMp3File.name} to shared folder",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } catch (error: Throwable) {
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(
+                            context,
+                            "Could not save mp3 file ${outputMp3File.nameWithoutExtension}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    Timber.d("Recording>>> could not save mp3 file ${outputMp3File.nameWithoutExtension} with error $error")
+                }
+            }
             val deletedMp4File = recordedVideo.delete()
             Timber.d("Recording>>> deleted mp4 file=$deletedMp4File")
             pendingExtraOutputFile?.delete()?.let {

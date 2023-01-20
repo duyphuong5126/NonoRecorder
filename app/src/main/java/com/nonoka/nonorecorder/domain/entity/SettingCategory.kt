@@ -5,5 +5,8 @@ enum class SettingCategory {
     SAMPLING_RATE,
     ENCODING_BITRATE,
 
-    DARK_THEME;
+    DARK_THEME,
+
+    USE_SHARED_STORAGE
+    ;
 }

@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_CHANNELS
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_ENCODING_BITRATE
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_SAMPLING_RATE
+import com.nonoka.nonorecorder.di.qualifier.GeneralSetting
 import com.nonoka.nonorecorder.di.qualifier.RecordingSetting
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.SAMPLING_RATE
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.AUDIO_CHANNELS
@@ -49,7 +50,11 @@ import timber.log.Timber
 class CallRecordingService : AccessibilityService() {
     @Inject
     @RecordingSetting
-    lateinit var configDataSource: ConfigDataSource
+    lateinit var recordingConfigDataSource: ConfigDataSource
+
+    @Inject
+    @GeneralSetting
+    lateinit var generalConfigDataSource: ConfigDataSource
 
     private var windowManager: WindowManager? = null
     // ImageView back,home,notification,minimize;
@@ -131,13 +136,13 @@ class CallRecordingService : AccessibilityService() {
     private val standbyNotificationContentText: String
         get() {
             val samplingRateText = numberFormat.format(
-                configDataSource.getInt(SAMPLING_RATE.name, DEFAULT_SAMPLING_RATE)
+                recordingConfigDataSource.getInt(SAMPLING_RATE.name, DEFAULT_SAMPLING_RATE)
             )
             val audioChannelsText = numberFormat.format(
-                configDataSource.getInt(AUDIO_CHANNELS.name, DEFAULT_CHANNELS)
+                recordingConfigDataSource.getInt(AUDIO_CHANNELS.name, DEFAULT_CHANNELS)
             )
             val encodingBitrateText = numberFormat.format(
-                configDataSource.getInt(ENCODING_BITRATE.name, DEFAULT_ENCODING_BITRATE)
+                recordingConfigDataSource.getInt(ENCODING_BITRATE.name, DEFAULT_ENCODING_BITRATE)
             )
             return getString(
                 R.string.recording_configs,
@@ -244,7 +249,7 @@ class CallRecordingService : AccessibilityService() {
             }, interval = PERMISSIONS_CHECK_INTERVAL)
         }
 
-        callRecorder = VideoCallRecorder(configDataSource)
+        callRecorder = VideoCallRecorder(recordingConfigDataSource, generalConfigDataSource)
 
         /*  back = new ImageView(this);
         home = new ImageView(this);
