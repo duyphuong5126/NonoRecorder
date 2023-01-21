@@ -12,6 +12,7 @@ import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.BrokenRecordedFileUiModel
+import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.FirstBannerAdUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.StartPlayingList
 import java.io.File
 import java.text.SimpleDateFormat
@@ -89,6 +90,9 @@ class RecordedListViewModel : ViewModel() {
                                 filePath = file.absolutePath
                             )
                         )
+                    }
+                    if (index == FIRST_BANNER_AD_INDEX) {
+                        recordedFiles.add(FirstBannerAdUiModel)
                     }
                 }
                 recordedList.clear()
@@ -197,5 +201,9 @@ class RecordedListViewModel : ViewModel() {
                 _toastMessage.emit("Cannot rename file to $newFileName")
             }
         }
+    }
+
+    companion object {
+        private const val FIRST_BANNER_AD_INDEX = 9
     }
 }

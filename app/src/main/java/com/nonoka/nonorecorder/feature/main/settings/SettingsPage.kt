@@ -201,6 +201,10 @@ fun SettingsPage(settingsViewModel: SettingsViewModel) {
                     }
                 }
             }
+
+            item {
+                Box(modifier = Modifier.height(Dimens.ultraLargeSpace))
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.nonoka.nonorecorder.feature.main.recorded
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,18 +38,24 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.titleAppBar
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.BrokenRecordedFileUiModel
+import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.FirstBannerAdUiModel
 import com.nonoka.nonorecorder.isDarkTheme
 import com.nonoka.nonorecorder.shared.GifImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
+@SuppressLint("VisibleForTests")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordedListPage(
@@ -137,7 +144,10 @@ private fun RecordedList(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     LazyColumn(
-        modifier = Modifier.padding(paddingValues),
+        modifier = Modifier
+            .padding(paddingValues)
+            .fillMaxWidth()
+            .fillMaxHeight(),
         verticalArrangement = Arrangement.Top,
         state = listState
     ) {
@@ -182,11 +192,12 @@ private fun RecordedList(
                     recordedFile = recordedItem,
                     onDeleteFile = onDeleteFile
                 )
+                is FirstBannerAdUiModel -> FirstBannerAd()
             }
         }
 
         item {
-            Box(modifier = Modifier.height(Dimens.extraLargeSpace))
+            Box(modifier = Modifier.height(Dimens.ultraLargeSpace))
         }
     }
 }
@@ -384,5 +395,20 @@ private fun RecordedDateItem(recordedDate: RecordedDate) {
         text = recordedDate.date,
         style = MaterialTheme.typography.bodyLarge,
         modifier = Modifier.padding(horizontal = Dimens.mediumSpace)
+    )
+}
+
+@SuppressLint("VisibleForTests")
+@Composable
+fun FirstBannerAd() {
+    AndroidView(
+        modifier = Modifier.fillMaxWidth(),
+        factory = { context ->
+            AdView(context).apply {
+                setAdSize(AdSize.LARGE_BANNER)
+                adUnitId = context.getString(R.string.first_banner_ad_id)
+                loadAd(AdRequest.Builder().build())
+            }
+        }
     )
 }

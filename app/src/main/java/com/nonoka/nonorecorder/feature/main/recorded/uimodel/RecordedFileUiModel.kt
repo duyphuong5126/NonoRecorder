@@ -19,4 +19,6 @@ sealed class RecordedItem {
         val filePath: String,
         val lastModified: String
     ) : RecordedItem()
+
+    object FirstBannerAdUiModel : RecordedItem()
 }

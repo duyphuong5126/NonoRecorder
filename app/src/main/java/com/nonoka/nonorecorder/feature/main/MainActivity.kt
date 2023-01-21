@@ -1,7 +1,8 @@
 package com.nonoka.nonorecorder.feature.main
 
-import android.Manifest.permission.RECORD_AUDIO
 import android.Manifest.permission.POST_NOTIFICATIONS
+import android.Manifest.permission.RECORD_AUDIO
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -19,6 +20,9 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.BottomNavigation
@@ -31,9 +35,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -43,6 +49,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.nonoka.nonorecorder.App
 import com.nonoka.nonorecorder.CallRecordingService
@@ -64,6 +74,7 @@ import com.nonoka.nonorecorder.feature.tutorials.TutorialActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @AndroidEntryPoint
@@ -139,8 +150,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("VisibleForTests")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MobileAds.initialize(
+            this
+        ) {
+            Timber.d("Initialized Admob, status=$it")
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (shouldShowRequestPermissionRationale(POST_NOTIFICATIONS)) {
                 MaterialAlertDialogBuilder(this).setTitle(R.string.permission_required_title)
@@ -247,58 +264,78 @@ class MainActivity : AppCompatActivity() {
                         }
                     },
                 ) {
-                    NavHost(
-                        navController = navController,
-                        startDestination = defaultNavigationRoutes[0].id,
-                        modifier = Modifier.padding(it),
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(),
+                        contentAlignment = Alignment.BottomCenter
                     ) {
-                        composable(homeRouteName) {
-                            HomePage(
-                                viewModel = homeViewModel,
-                                handleDrawOverlayPermission = {
-                                    val intent = Intent(
-                                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                        Uri.parse("package:$packageName")
-                                    )
-                                    drawOverlayPermissionRequestLauncher.launch(
-                                        Intent.createChooser(
-                                            intent, "Settings app"
+                        NavHost(
+                            navController = navController,
+                            startDestination = defaultNavigationRoutes[0].id,
+                            modifier = Modifier.padding(it),
+                        ) {
+                            composable(homeRouteName) {
+                                HomePage(
+                                    viewModel = homeViewModel,
+                                    handleDrawOverlayPermission = {
+                                        val intent = Intent(
+                                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                            Uri.parse("package:$packageName")
                                         )
-                                    )
-                                },
-                                handleAudioPermission = this@MainActivity::handleAudioPermission,
-                                handleAccessibilityPermission = {
-                                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                                    startActivity(intent)
-                                },
-                                handleLearnMore = { tutorialMode ->
-                                    TutorialActivity.start(this@MainActivity, tutorialMode)
+                                        drawOverlayPermissionRequestLauncher.launch(
+                                            Intent.createChooser(
+                                                intent, "Settings app"
+                                            )
+                                        )
+                                    },
+                                    handleAudioPermission = this@MainActivity::handleAudioPermission,
+                                    handleAccessibilityPermission = {
+                                        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                                        startActivity(intent)
+                                    },
+                                    handleLearnMore = { tutorialMode ->
+                                        TutorialActivity.start(this@MainActivity, tutorialMode)
+                                    }
+                                )
+                            }
+
+                            composable(recordedListRouteName) {
+                                RecordedListPage(
+                                    recordedListViewModel,
+                                    onStartPlaying = { file ->
+                                        recordedListViewModel.generatePlayingList(file)
+                                    },
+                                    onDeleteFile = { filePath ->
+                                        MaterialAlertDialogBuilder(this@MainActivity).setTitle(R.string.delete_file_title)
+                                            .setMessage(R.string.delete_file_message)
+                                            .setPositiveButton(
+                                                R.string.action_yes
+                                            ) { _, _ ->
+                                                recordedListViewModel.deleteFile(filePath)
+                                            }.setNegativeButton(R.string.action_no, null).show()
+                                    },
+                                    onRenameFile = this@MainActivity::onRenameFile,
+                                )
+                            }
+
+                            composable(settingsRouteName) {
+                                SettingsPage(settingsViewModel)
+                            }
+                        }
+
+                        AndroidView(
+                            modifier = Modifier
+                                .padding(it)
+                                .fillMaxWidth(),
+                            factory = { context ->
+                                AdView(context).apply {
+                                    setAdSize(AdSize.FULL_BANNER)
+                                    adUnitId = context.getString(R.string.sticky_banner_ad_id)
+                                    loadAd(AdRequest.Builder().build())
                                 }
-                            )
-                        }
-
-                        composable(recordedListRouteName) {
-                            RecordedListPage(
-                                recordedListViewModel,
-                                onStartPlaying = { file ->
-                                    recordedListViewModel.generatePlayingList(file)
-                                },
-                                onDeleteFile = { filePath ->
-                                    MaterialAlertDialogBuilder(this@MainActivity).setTitle(R.string.delete_file_title)
-                                        .setMessage(R.string.delete_file_message)
-                                        .setPositiveButton(
-                                            R.string.action_yes
-                                        ) { _, _ ->
-                                            recordedListViewModel.deleteFile(filePath)
-                                        }.setNegativeButton(R.string.action_no, null).show()
-                                },
-                                onRenameFile = this@MainActivity::onRenameFile,
-                            )
-                        }
-
-                        composable(settingsRouteName) {
-                            SettingsPage(settingsViewModel)
-                        }
+                            }
+                        )
                     }
                 }
             }
