@@ -82,13 +82,16 @@ fun RecordedListPage(
                 onRenameFile = onRenameFile
             )
         } else {
-            EmptyRecordedList(paddingValues = it)
+            EmptyRecordedList(recordedListViewModel = recordedListViewModel, paddingValues = it)
         }
     }
 }
 
 @Composable
-private fun EmptyRecordedList(paddingValues: PaddingValues) {
+private fun EmptyRecordedList(
+    recordedListViewModel: RecordedListViewModel,
+    paddingValues: PaddingValues
+) {
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -97,15 +100,29 @@ private fun EmptyRecordedList(paddingValues: PaddingValues) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(text = "No recorded call", style = MaterialTheme.typography.headlineMedium)
+        if (recordedListViewModel.isProcessingAudio) {
+            GifImage(
+                gifResId = if (isDarkTheme()) R.drawable.ic_loading_dark_24dp else R.drawable.ic_loading_light_24dp,
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        Box(modifier = Modifier.height(Dimens.normalSpace))
+            Box(modifier = Modifier.height(Dimens.normalSpace))
 
-        Text(
-            text = "Your VOIP calls will be auto-recorded.",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-        )
+            Text(
+                text = "Processing new file",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        } else {
+            Text(text = "No recorded call", style = MaterialTheme.typography.headlineMedium)
+
+            Box(modifier = Modifier.height(Dimens.normalSpace))
+
+            Text(
+                text = "Your VOIP calls will be auto-recorded.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
