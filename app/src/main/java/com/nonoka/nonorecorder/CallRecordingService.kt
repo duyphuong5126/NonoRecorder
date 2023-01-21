@@ -624,6 +624,6 @@ class CallRecordingService : AccessibilityService() {
 
         private const val AUDIO_MODE_CHECK_INTERVAL = 1000L
         private const val PERMISSIONS_CHECK_INTERVAL = 5000L
-        private const val ALLOWED_INTERRUPTING_TIME = 5000L
+        private const val ALLOWED_INTERRUPTING_TIME = 2000L
     }
 }
