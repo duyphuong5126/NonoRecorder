@@ -13,6 +13,7 @@
         <item name="android:statusBarColor">@color/gray_200</item>
         <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
     <style name="Theme.NonoRecorder.Player" parent="Theme.NonoRecorder">

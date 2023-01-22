@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
+import android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,6 +42,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -206,9 +208,18 @@ class MainActivity : AppCompatActivity() {
             )
         setContent {
             val navController = rememberNavController()
-            NonoTheme(
-                context = this
-            ) {
+            NonoTheme(context = this, onThemeRendering = { isInDarkTheme ->
+                val window = window
+                window.addFlags(FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+                window.statusBarColor = if (isInDarkTheme) {
+                    getColor(R.color.black)
+                } else {
+                    getColor(R.color.gray_200)
+                }
+                WindowCompat.getInsetsController(
+                    window, window.decorView
+                ).isAppearanceLightStatusBars = !isInDarkTheme
+            }) {
                 Scaffold(
                     bottomBar = {
                         BottomNavigation(

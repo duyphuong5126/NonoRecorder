@@ -16,5 +16,6 @@
         <!-- Customize your theme here. -->
         <item name="android:windowSplashScreenBackground">#FF537951</item>
         <item name="android:windowSplashScreenIconBackgroundColor">#FF537951</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 </resources>

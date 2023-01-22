@@ -17,8 +17,13 @@ object Colors {
     val switchUnselectedColor = Color(0xFFE0E0E0)
 
     @Composable
-    fun getColorScheme() =
-        if (isSystemInDarkTheme()) getDarkColorScheme() else getLightColorScheme()
+    fun isInDarkTheme(nightMode: NightMode): Boolean {
+        return when (nightMode) {
+            NightMode.Light -> false
+            NightMode.Dark -> true
+            else -> isSystemInDarkTheme()
+        }
+    }
 
     @Composable
     fun getColorScheme(nightMode: NightMode): ColorScheme {
