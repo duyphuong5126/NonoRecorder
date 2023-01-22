@@ -341,6 +341,70 @@ fun AccessibilityPermissionPage(
         }
 
         item {
+            Box(modifier = Modifier.height(Dimens.normalSpace))
+        }
+
+        //========================================================
+        item {
+            Text(
+                text = "You should also see a notification after the step 4.\nIf you don't, please try turning off and on the toggle in step 3 until you see the notification.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        item {
+            Box(modifier = Modifier.height(Dimens.mediumSpace))
+        }
+
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.accessibility_6),
+                    contentDescription = "Accessibility permission guild: Result 1",
+                    modifier = Modifier.border(
+                        width = Dimens.tinySpace,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                )
+            }
+        }
+
+        item {
+            Box(modifier = Modifier.height(Dimens.normalSpace))
+        }
+
+        //========================================================
+        item {
+            Text(
+                text = "You should also see the app's information in the \"Active apps\" section of the notification draw.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        item {
+            Box(modifier = Modifier.height(Dimens.mediumSpace))
+        }
+
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.accessibility_7),
+                    contentDescription = "Accessibility permission guild: Result 2",
+                    modifier = Modifier.border(
+                        width = Dimens.tinySpace,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                )
+            }
+        }
+
+        item {
             Box(modifier = Modifier.height(Dimens.largeSpace))
         }
         //========================================================
