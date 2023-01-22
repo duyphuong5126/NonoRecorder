@@ -110,7 +110,7 @@ fun HomePage(
                         Box(modifier = Modifier.height(Dimens.smallSpace))
 
                         Text(
-                            text = "All permissions for recording calls are granted.\nYour VOIP calls will be recorded automatically.",
+                            text = "All permissions for recording calls are granted.\nYour calls will be recorded automatically.",
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(horizontal = Dimens.mediumSpace),
                             textAlign = TextAlign.Center
@@ -152,7 +152,7 @@ fun HomePage(
                         Box(modifier = Modifier.height(Dimens.smallSpace))
 
                         Text(
-                            text = "App needs some permissions to record VOIP calls.\nPlease consider granting them.",
+                            text = "App needs some permissions to record calls.\nPlease consider granting them.",
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(horizontal = Dimens.mediumSpace),
                             textAlign = TextAlign.Center
@@ -189,7 +189,7 @@ fun HomePage(
                         Box(modifier = Modifier.height(Dimens.mediumSpace))
 
                         Text(
-                            text = "This app needs to display over the VOIP apps so that it can share to the audio input with them.",
+                            text = "This app needs to display over the call apps so that it can share to the audio input with them.",
                             style = MaterialTheme.typography.bodySmall,
                         )
 
@@ -310,7 +310,7 @@ fun HomePage(
                             Box(modifier = Modifier.height(Dimens.mediumSpace))
 
                             Text(
-                                text = "This app needs accessibility permission so it can share the audio input with the VOIP apps.",
+                                text = "This app needs accessibility permission so it can share the audio input with the call apps.",
                                 style = MaterialTheme.typography.bodySmall,
                             )
 

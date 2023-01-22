@@ -125,7 +125,7 @@ private fun EmptyRecordedList(
             Box(modifier = Modifier.height(Dimens.normalSpace))
 
             Text(
-                text = "Your VOIP calls will be auto-recorded.",
+                text = "Your calls will be auto-recorded.",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
             )
