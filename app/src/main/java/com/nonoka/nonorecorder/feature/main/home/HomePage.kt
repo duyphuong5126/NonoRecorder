@@ -65,6 +65,7 @@ fun HomePage(
             title = stringResource(id = R.string.permission_required_title),
             description = stringResource(id = R.string.post_notification_permission_required_message),
             yesLabel = stringResource(id = R.string.action_ok),
+            noLabel = stringResource(id = R.string.action_cancel),
             onDismiss = {
                 viewModel.showPostNotificationPermissionRationale = false
             },
@@ -76,6 +77,7 @@ fun HomePage(
             title = stringResource(id = R.string.permission_required_title),
             description = stringResource(id = R.string.accessibility_permission_required_message),
             yesLabel = stringResource(id = R.string.action_ok),
+            noLabel = stringResource(id = R.string.action_cancel),
             onDismiss = {
                 viewModel.showDrawOverlayPermissionRationale = false
             },
