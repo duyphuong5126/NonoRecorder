@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
     private val drawOverlayPermissionRequestLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK || it.resultCode == RESULT_CANCELED) {
-                homeViewModel.drawOverlayPermissionStateChange(Settings.canDrawOverlays(this))
+                homeViewModel.canDrawOverlay = Settings.canDrawOverlays(this)
                 if (!Settings.canDrawOverlays(this)) {
                     homeViewModel.showDrawOverlayPermissionRationale = true
                 }
@@ -138,7 +138,7 @@ class MainActivity : AppCompatActivity() {
             return accessibilityFound
         }
 
-    private val canDrawOverlays: Boolean get() = Settings.canDrawOverlays(this@MainActivity)
+    private val canDrawOverlay: Boolean get() = Settings.canDrawOverlays(this@MainActivity)
 
     private val recordingFinishedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -164,11 +164,9 @@ class MainActivity : AppCompatActivity() {
                 handleNotificationPermission()
             }
         }
-        homeViewModel.initPermission(
-            canDrawOverlay = canDrawOverlays,
-            canRecordAudio = isRecordingPermissionGranted,
-            hasAccessibilityPermission = isAccessibilitySettingsOn
-        )
+        homeViewModel.canDrawOverlay = canDrawOverlay
+        homeViewModel.canRecordAudio = isRecordingPermissionGranted
+        homeViewModel.hasAccessibilityPermission = isAccessibilitySettingsOn
         recordedListViewModel.initialize(filesDir.absolutePath)
         settingsViewModel.init()
         lifecycleScope.launch {
@@ -335,11 +333,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        homeViewModel.initPermission(
-            canDrawOverlay = canDrawOverlays,
-            canRecordAudio = isRecordingPermissionGranted,
-            hasAccessibilityPermission = isAccessibilitySettingsOn
-        )
+        homeViewModel.canDrawOverlay = canDrawOverlay
+        homeViewModel.canRecordAudio = isRecordingPermissionGranted
+        homeViewModel.hasAccessibilityPermission = isAccessibilitySettingsOn
 
         registerReceiver(recordingFinishedReceiver, IntentFilter(actionFinishedRecording))
         registerReceiver(recordingFinishedReceiver, IntentFilter(actionProcessingRecordedFile))
@@ -356,7 +352,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         permissions.forEachIndexed { index, permission ->
             if (permission == RECORD_AUDIO && requestCode == URGENT_AUDIO_PERMISSION_REQUEST_CODE) {
-                homeViewModel.recordAudioPermissionStateChange(grantResults[index] == PERMISSION_GRANTED)
+                homeViewModel.canRecordAudio = grantResults[index] == PERMISSION_GRANTED
                 return
             }
         }
