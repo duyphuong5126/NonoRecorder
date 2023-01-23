@@ -29,6 +29,7 @@
     <string name="export_file_message">Export this file to the %s folder?\nIt will become visible to other apps.</string>
 
     <string name="rename_file_title">Rename file</string>
+    <string name="rename_file_hint">New file name</string>
 
     <!-- Settings page -->
     <string name="video_recording_settings_area">Recording</string>

@@ -15,17 +15,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
@@ -180,6 +188,146 @@ fun YesNoDialog(
                     ) {
                         Text(
                             text = yesLabel,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun InputDialog(
+    title: String,
+    initValue: String,
+    hint: String = "",
+    keyboardType: KeyboardType,
+    imeAction: ImeAction = ImeAction.Done,
+    validator: ((String) -> String?)? = null,
+    submitLabel: String = stringResource(id = R.string.action_yes),
+    cancelLabel: String = stringResource(id = R.string.action_no),
+    onDismiss: () -> Unit,
+    onSubmit: (String) -> Unit = {},
+    onCancel: () -> Unit = {},
+    properties: DialogProperties = DialogProperties(),
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = properties.let {
+            DialogProperties(
+                dismissOnBackPress = it.dismissOnBackPress,
+                dismissOnClickOutside = it.dismissOnClickOutside,
+                securePolicy = it.securePolicy,
+                usePlatformDefaultWidth = false
+            )
+        },
+    ) {
+        val dialogWindowProvider = LocalView.current.parent as DialogWindowProvider
+        dialogWindowProvider.window.setGravity(Gravity.BOTTOM)
+
+        Surface(
+            modifier = Modifier
+                .padding(Dimens.normalSpace)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(Dimens.largeSpace),
+        ) {
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .padding(
+                            vertical = Dimens.normalSpace,
+                            horizontal = Dimens.largeSpace,
+                        )
+                        .fillMaxWidth()
+                )
+
+                val editText = remember { mutableStateOf(initValue) }
+                val inputError = remember { mutableStateOf<String?>(null) }
+
+                OutlinedTextField(
+                    value = editText.value,
+                    onValueChange = {
+                        editText.value = it
+                        inputError.value = validator?.invoke(it)
+                    },
+                    supportingText = {
+                        val error = inputError.value
+                        if (error != null) {
+                            Text(text = error)
+                        }
+                    },
+                    placeholder = {
+                        Text(text = hint)
+                    },
+                    isError = inputError.value != null,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = keyboardType,
+                        imeAction = imeAction,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            onDismiss()
+                            onSubmit(editText.value)
+                        },
+                    ),
+                    maxLines = 1,
+                    modifier = Modifier
+                        .padding(horizontal = Dimens.normalSpace)
+                        .fillMaxWidth()
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        modifier = Modifier
+                            .padding(
+                                horizontal = Dimens.normalSpace,
+                                vertical = Dimens.mediumSpace,
+                            )
+                            .weight(1f),
+                        onClick = {
+                            onDismiss()
+                            onCancel()
+                        },
+                    ) {
+                        Text(
+                            text = cancelLabel,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = Dimens.smallSpace)
+                            .width(Dimens.tinySpace)
+                            .height(Dimens.normalSpace)
+                            .background(color = MaterialTheme.colorScheme.outline)
+                    )
+
+                    TextButton(
+                        modifier = Modifier
+                            .padding(
+                                horizontal = Dimens.normalSpace,
+                                vertical = Dimens.mediumSpace,
+                            )
+                            .weight(1f),
+                        onClick = {
+                            onDismiss()
+                            onSubmit(editText.value)
+                        },
+                        enabled = editText.value.isNotBlank() && inputError.value == null
+                    ) {
+                        Text(
+                            text = submitLabel,
                             style = MaterialTheme.typography.labelLarge
                         )
                     }

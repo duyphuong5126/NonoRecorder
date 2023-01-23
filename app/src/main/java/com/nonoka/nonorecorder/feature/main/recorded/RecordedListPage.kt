@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -56,6 +57,7 @@ import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.Broken
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.FirstBannerAdUiModel
 import com.nonoka.nonorecorder.isDarkTheme
 import com.nonoka.nonorecorder.shared.GifImage
+import com.nonoka.nonorecorder.shared.InputDialog
 import com.nonoka.nonorecorder.shared.YesNoDialog
 import com.nonoka.nonorecorder.shared.createSharedAudioFile
 import com.nonoka.nonorecorder.shared.exportFolder
@@ -71,7 +73,6 @@ import kotlinx.coroutines.launch
 fun RecordedListPage(
     recordedListViewModel: RecordedListViewModel,
     onStartPlaying: (RecordedFileUiModel) -> Unit,
-    onRenameFile: (filePath: String, currentFileName: String) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -94,7 +95,6 @@ fun RecordedListPage(
                 recordedListViewModel = recordedListViewModel,
                 paddingValues = it,
                 onStartPlaying = onStartPlaying,
-                onRenameFile = onRenameFile
             )
         } else {
             EmptyRecordedList(recordedListViewModel = recordedListViewModel, paddingValues = it)
@@ -145,7 +145,6 @@ private fun EmptyRecordedList(
 private fun RecordedList(
     recordedListViewModel: RecordedListViewModel,
     onStartPlaying: (RecordedFileUiModel) -> Unit,
-    onRenameFile: (filePath: String, currentName: String) -> Unit,
     paddingValues: PaddingValues
 ) {
     val listState = rememberLazyListState()
@@ -154,6 +153,8 @@ private fun RecordedList(
     val exportFile = exportFilePathHolder.value?.let(::File)
     val deleteFilePathHolder = remember { mutableStateOf<String?>(null) }
     val deleteFilePath = deleteFilePathHolder.value
+    val renameFileHolder = remember { mutableStateOf<RecordedFileUiModel?>(null) }
+    val renameFile = renameFileHolder.value
 
     val context = LocalContext.current
     if (exportFile != null) {
@@ -188,6 +189,26 @@ private fun RecordedList(
             onAnswerYes = {
                 recordedListViewModel.deleteFile(deleteFilePath)
             },
+        )
+    }
+
+    if (renameFile != null) {
+        InputDialog(
+            title = stringResource(id = R.string.rename_file_title),
+            initValue = renameFile.nameWithoutExtension,
+            keyboardType = KeyboardType.Text,
+            hint = stringResource(id = R.string.rename_file_hint),
+            onDismiss = {
+                renameFileHolder.value = null
+            },
+            onSubmit = {
+                recordedListViewModel.renameFile(renameFile.filePath, it)
+            },
+            validator = {
+                if (it.isBlank()) "File name cannot be blank" else null
+            },
+            submitLabel = stringResource(id = R.string.action_rename),
+            cancelLabel = stringResource(id = R.string.action_cancel)
         )
     }
     LazyColumn(
@@ -237,7 +258,9 @@ private fun RecordedList(
                     onExportFile = {
                         exportFilePathHolder.value = it
                     },
-                    onRenameFile = onRenameFile
+                    onRenameFile = {
+                        renameFileHolder.value = it
+                    }
                 )
                 is RecordedDate -> RecordedDateItem(recordedDate = recordedItem)
                 is BrokenRecordedFileUiModel -> BrokenRecordedFile(
@@ -262,7 +285,7 @@ private fun RecordedFile(
     recordedFile: RecordedFileUiModel,
     onDeleteFile: (String) -> Unit,
     onExportFile: (String) -> Unit,
-    onRenameFile: (filePath: String, currentName: String) -> Unit,
+    onRenameFile: (RecordedFileUiModel) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -313,7 +336,7 @@ private fun RecordedFile(
             ) {
                 Row {
                     IconButton(onClick = {
-                        onRenameFile(recordedFile.filePath, recordedFile.nameWithoutExtension)
+                        onRenameFile(recordedFile)
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_edit_solid_24dp),

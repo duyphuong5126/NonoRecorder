@@ -18,7 +18,6 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -54,7 +53,6 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.nonoka.nonorecorder.App
 import com.nonoka.nonorecorder.CallRecordingService
 import com.nonoka.nonorecorder.NonoTheme
@@ -63,7 +61,6 @@ import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
 import com.nonoka.nonorecorder.constant.IntentConstants.actionProcessingRecordedFile
 import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
-import com.nonoka.nonorecorder.databinding.LayoutDialogInputBinding
 import com.nonoka.nonorecorder.feature.main.home.HomePage
 import com.nonoka.nonorecorder.feature.main.home.HomeViewModel
 import com.nonoka.nonorecorder.feature.main.recorded.RecordedListPage
@@ -303,7 +300,6 @@ class MainActivity : AppCompatActivity() {
                                     onStartPlaying = { file ->
                                         recordedListViewModel.generatePlayingList(file)
                                     },
-                                    onRenameFile = this@MainActivity::onRenameFile,
                                 )
                             }
 
@@ -389,36 +385,6 @@ class MainActivity : AppCompatActivity() {
             is MainNavigationRoute.RecordedListRouteMain -> R.drawable.ic_list_solid_24dp
             is MainNavigationRoute.SettingsRouteMain -> R.drawable.ic_settings_24dp
         }
-    }
-
-    private fun onRenameFile(filePath: String, currentFileName: String) {
-        val viewBinding = LayoutDialogInputBinding.inflate(layoutInflater)
-        viewBinding.inputText.setText(currentFileName)
-        val dialog = MaterialAlertDialogBuilder(this@MainActivity)
-            .setTitle(R.string.rename_file_title)
-            .setView(viewBinding.root)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_rename, null)
-            .create()
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val newName = viewBinding.inputText.text.toString()
-                if (newName.isBlank()) {
-                    Toast.makeText(this@MainActivity, "Name cannot be blank", Toast.LENGTH_SHORT)
-                        .show()
-                    viewBinding.inputLayout.error = "File name cannot be blank"
-                } else {
-                    recordedListViewModel.renameFile(filePath, newName)
-                    dialog.dismiss()
-                }
-            }
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
-                dialog.dismiss()
-            }
-        }
-
-        dialog.show()
     }
 
     private fun requestDrawOverlayPermission() {
