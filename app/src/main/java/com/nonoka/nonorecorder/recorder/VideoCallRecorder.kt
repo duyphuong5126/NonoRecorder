@@ -24,6 +24,7 @@ import com.nonoka.nonorecorder.domain.entity.SettingCategory.SAMPLING_RATE
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.USE_SHARED_STORAGE
 import com.nonoka.nonorecorder.infrastructure.ConfigDataSource
 import com.nonoka.nonorecorder.shared.createSharedAudioFile
+import com.nonoka.nonorecorder.shared.exportFolder
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -66,7 +67,7 @@ class VideoCallRecorder(
         filePartIndex.getAndSet(0)
         useSharedStorage.compareAndSet(
             false,
-            generalConfigDataSource.getBoolean(USE_SHARED_STORAGE.name, false)
+            generalConfigDataSource.getBoolean(USE_SHARED_STORAGE.id, false)
         )
         try {
             @Suppress("DEPRECATION")
@@ -84,11 +85,11 @@ class VideoCallRecorder(
             //recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             recorder.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC)
 
-            configDataSource.getInt(SAMPLING_RATE.name, DEFAULT_SAMPLING_RATE)
+            configDataSource.getInt(SAMPLING_RATE.id, DEFAULT_SAMPLING_RATE)
                 .let(recorder::setAudioSamplingRate)
-            configDataSource.getInt(ENCODING_BITRATE.name, DEFAULT_ENCODING_BITRATE)
+            configDataSource.getInt(ENCODING_BITRATE.id, DEFAULT_ENCODING_BITRATE)
                 .let(recorder::setAudioEncodingBitRate)
-            configDataSource.getInt(AUDIO_CHANNELS.name, DEFAULT_CHANNELS)
+            configDataSource.getInt(AUDIO_CHANNELS.id, DEFAULT_CHANNELS)
                 .let(recorder::setAudioChannels)
 
             recorder.prepare()
@@ -142,7 +143,7 @@ class VideoCallRecorder(
                     Handler(Looper.getMainLooper()).post {
                         Toast.makeText(
                             context,
-                            "Save file ${outputMp3File.name} to shared folder",
+                            "Saved file ${outputMp3File.name} to $exportFolder folder",
                             Toast.LENGTH_SHORT
                         ).show()
                     }

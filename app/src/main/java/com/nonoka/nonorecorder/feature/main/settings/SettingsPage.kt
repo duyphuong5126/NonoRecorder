@@ -84,7 +84,7 @@ fun SettingsPage(settingsViewModel: SettingsViewModel) {
             itemsIndexed(
                 items = settingsViewModel.recordingSettings,
                 key = { _, setting: SettingUiModel ->
-                    setting.category.name
+                    setting.category.id
                 }) { index, setting ->
                 when (index) {
                     0 -> {
@@ -289,13 +289,23 @@ private fun SwitchSettingItem(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = setting.name,
-                style = MaterialTheme.typography.bodyLarge,
+            Column(
                 modifier = Modifier
                     .padding(end = Dimens.mediumSpace)
                     .weight(1f),
-            )
+            ) {
+                Text(
+                    text = setting.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+
+                Box(modifier = Modifier.height(Dimens.smallSpace))
+
+                Text(
+                    text = setting.details,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
 
             Switch(
                 checked = setting.value,

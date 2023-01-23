@@ -5,20 +5,20 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import com.nonoka.nonorecorder.App
 import com.nonoka.nonorecorder.theme.NightMode
 
 object Colors {
     val white = Color(0xFFFFFFFF)
-
-    val transparency = Color(0x00000000)
 
     val successColor = Color(0xFF4CAF50)
 
     val switchUnselectedColor = Color(0xFFE0E0E0)
 
     @Composable
-    fun isInDarkTheme(nightMode: NightMode): Boolean {
-        return when (nightMode) {
+    fun isInDarkTheme(): Boolean {
+        return when ((LocalContext.current.applicationContext as App).nightModeSetting) {
             NightMode.Light -> false
             NightMode.Dark -> true
             else -> isSystemInDarkTheme()
@@ -26,12 +26,8 @@ object Colors {
     }
 
     @Composable
-    fun getColorScheme(nightMode: NightMode): ColorScheme {
-        return when (nightMode) {
-            NightMode.Light -> getLightColorScheme()
-            NightMode.Dark -> getDarkColorScheme()
-            else -> if (isSystemInDarkTheme()) getDarkColorScheme() else getLightColorScheme()
-        }
+    fun getColorScheme(isInDarkTheme: Boolean): ColorScheme {
+        return if (isInDarkTheme) getDarkColorScheme() else getLightColorScheme()
     }
 
     @Composable

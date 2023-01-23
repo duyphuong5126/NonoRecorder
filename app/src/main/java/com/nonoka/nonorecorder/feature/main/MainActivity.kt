@@ -208,18 +208,20 @@ class MainActivity : AppCompatActivity() {
             )
         setContent {
             val navController = rememberNavController()
-            NonoTheme(context = this, onThemeRendering = { isInDarkTheme ->
-                val window = window
-                window.addFlags(FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-                window.statusBarColor = if (isInDarkTheme) {
-                    getColor(R.color.black)
-                } else {
-                    getColor(R.color.gray_200)
-                }
-                WindowCompat.getInsetsController(
-                    window, window.decorView
-                ).isAppearanceLightStatusBars = !isInDarkTheme
-            }) {
+            NonoTheme(
+                onThemeRendering = { isInDarkTheme ->
+                    val window = window
+                    window.addFlags(FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+                    window.statusBarColor = if (isInDarkTheme) {
+                        getColor(R.color.black)
+                    } else {
+                        getColor(R.color.gray_200)
+                    }
+                    WindowCompat.getInsetsController(
+                        window, window.decorView
+                    ).isAppearanceLightStatusBars = !isInDarkTheme
+                },
+            ) {
                 Scaffold(
                     bottomBar = {
                         BottomNavigation(

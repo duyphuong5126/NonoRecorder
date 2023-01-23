@@ -1,6 +1,7 @@
 package com.nonoka.nonorecorder.feature.main.recorded
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,14 +31,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -51,6 +56,11 @@ import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.Broken
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.FirstBannerAdUiModel
 import com.nonoka.nonorecorder.isDarkTheme
 import com.nonoka.nonorecorder.shared.GifImage
+import com.nonoka.nonorecorder.shared.YesNoDialog
+import com.nonoka.nonorecorder.shared.createSharedAudioFile
+import com.nonoka.nonorecorder.shared.exportFolder
+import java.io.File
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -143,6 +153,30 @@ private fun RecordedList(
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val exportFilePathHolder = remember { mutableStateOf<String?>(null) }
+    val exportFile = exportFilePathHolder.value?.let(::File)
+    val context = LocalContext.current
+    if (exportFile != null) {
+        YesNoDialog(
+            title = stringResource(id = R.string.export_file_title),
+            description = stringResource(id = R.string.export_file_message, exportFolder),
+            onDismiss = {
+                exportFilePathHolder.value = null
+            },
+            onAnswerYes = {
+                coroutineScope.launch(Dispatchers.IO) {
+                    context.createSharedAudioFile(exportFile)
+                    coroutineScope.launch(Dispatchers.Main) {
+                        Toast.makeText(
+                            context,
+                            "Exported file ${exportFile.name} to $exportFolder folder",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            },
+        )
+    }
     LazyColumn(
         modifier = Modifier
             .padding(paddingValues)
@@ -185,6 +219,9 @@ private fun RecordedList(
                     recordedFile = recordedItem,
                     onStartPlaying = onStartPlaying,
                     onDeleteFile = onDeleteFile,
+                    onExportFile = {
+                        exportFilePathHolder.value = it
+                    },
                     onRenameFile = onRenameFile
                 )
                 is RecordedDate -> RecordedDateItem(recordedDate = recordedItem)
@@ -207,6 +244,7 @@ private fun RecordedFile(
     onStartPlaying: (RecordedFileUiModel) -> Unit,
     recordedFile: RecordedFileUiModel,
     onDeleteFile: (String) -> Unit,
+    onExportFile: (String) -> Unit,
     onRenameFile: (filePath: String, currentName: String) -> Unit,
 ) {
     Box(
@@ -278,6 +316,19 @@ private fun RecordedFile(
                             contentDescription = "Delete",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(Dimens.extraMediumIconSize)
+                        )
+                    }
+
+                    Box(modifier = Modifier.height(Dimens.mediumSpace))
+
+                    IconButton(onClick = {
+                        onExportFile(recordedFile.filePath)
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_export_solid_24dp),
+                            contentDescription = "Export",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }

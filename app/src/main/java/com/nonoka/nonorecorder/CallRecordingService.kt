@@ -136,13 +136,13 @@ class CallRecordingService : AccessibilityService() {
     private val standbyNotificationContentText: String
         get() {
             val samplingRateText = numberFormat.format(
-                recordingConfigDataSource.getInt(SAMPLING_RATE.name, DEFAULT_SAMPLING_RATE)
+                recordingConfigDataSource.getInt(SAMPLING_RATE.id, DEFAULT_SAMPLING_RATE)
             )
             val audioChannelsText = numberFormat.format(
-                recordingConfigDataSource.getInt(AUDIO_CHANNELS.name, DEFAULT_CHANNELS)
+                recordingConfigDataSource.getInt(AUDIO_CHANNELS.id, DEFAULT_CHANNELS)
             )
             val encodingBitrateText = numberFormat.format(
-                recordingConfigDataSource.getInt(ENCODING_BITRATE.name, DEFAULT_ENCODING_BITRATE)
+                recordingConfigDataSource.getInt(ENCODING_BITRATE.id, DEFAULT_ENCODING_BITRATE)
             )
             return getString(
                 R.string.recording_configs,

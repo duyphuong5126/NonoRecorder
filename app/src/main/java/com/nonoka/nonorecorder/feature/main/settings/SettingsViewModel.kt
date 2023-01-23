@@ -23,6 +23,7 @@ import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.SelectableSetting
 import com.nonoka.nonorecorder.feature.main.settings.uimodel.SettingUiModel.SwitchSetting
 import com.nonoka.nonorecorder.infrastructure.ConfigDataSource
+import com.nonoka.nonorecorder.shared.exportFolder
 import com.nonoka.nonorecorder.theme.NightMode
 import com.nonoka.nonorecorder.theme.NightMode.Dark
 import com.nonoka.nonorecorder.theme.NightMode.Light
@@ -74,7 +75,7 @@ class SettingsViewModel @Inject constructor(
                         )
                         if (newOption is IntegerSettingOption) {
                             viewModelScope.launch(Dispatchers.IO) {
-                                recordingConfigDataSource.saveInt(category.name, newOption.value)
+                                recordingConfigDataSource.saveInt(category.id, newOption.value)
                             }
                             if (category == DARK_THEME) {
                                 viewModelScope.launch(Dispatchers.Default) {
@@ -93,7 +94,7 @@ class SettingsViewModel @Inject constructor(
             storageLocationSetting?.let {
                 storageLocationSetting = it.copy(value = newState)
                 viewModelScope.launch {
-                    generalConfigDataSource.saveBoolean(USE_SHARED_STORAGE.name, newState)
+                    generalConfigDataSource.saveBoolean(USE_SHARED_STORAGE.id, newState)
                 }
             }
         }
@@ -118,7 +119,7 @@ class SettingsViewModel @Inject constructor(
         )
 
         val storedSamplingRate =
-            recordingConfigDataSource.getInt(SAMPLING_RATE.name, DEFAULT_SAMPLING_RATE)
+            recordingConfigDataSource.getInt(SAMPLING_RATE.id, DEFAULT_SAMPLING_RATE)
         recordingSettings.add(
             SelectableSetting(
                 category = SAMPLING_RATE,
@@ -168,7 +169,7 @@ class SettingsViewModel @Inject constructor(
             )
         )
         val storedEncodingBitrate =
-            recordingConfigDataSource.getInt(ENCODING_BITRATE.name, DEFAULT_ENCODING_BITRATE)
+            recordingConfigDataSource.getInt(ENCODING_BITRATE.id, DEFAULT_ENCODING_BITRATE)
         recordingSettings.add(
             SelectableSetting(
                 category = ENCODING_BITRATE,
@@ -197,7 +198,7 @@ class SettingsViewModel @Inject constructor(
             )
         )
         val storedAudioChannelCount =
-            recordingConfigDataSource.getInt(AUDIO_CHANNELS.name, DEFAULT_CHANNELS)
+            recordingConfigDataSource.getInt(AUDIO_CHANNELS.id, DEFAULT_CHANNELS)
         recordingSettings.add(
             SelectableSetting(
                 category = AUDIO_CHANNELS,
@@ -235,7 +236,7 @@ class SettingsViewModel @Inject constructor(
                 value = Dark.id
             )
         )
-        val selectedNightMode = generalConfigDataSource.getInt(DARK_THEME.name, System.id)
+        val selectedNightMode = generalConfigDataSource.getInt(DARK_THEME.id, System.id)
         val selectedNightModeIndex = themeOptionList.indexOfFirst {
             it.value == selectedNightMode
         }
@@ -253,8 +254,9 @@ class SettingsViewModel @Inject constructor(
     private fun initStorageSettings() {
         storageLocationSetting = SwitchSetting(
             category = USE_SHARED_STORAGE,
-            name = "Store recorded files in\na public folder",
-            value = generalConfigDataSource.getBoolean(USE_SHARED_STORAGE.name, false)
+            name = "Use a public folder",
+            details = "Recorded files will be stored in the $exportFolder folder, which is visible to other apps.",
+            value = generalConfigDataSource.getBoolean(USE_SHARED_STORAGE.id, false)
         )
     }
 

@@ -18,6 +18,7 @@ sealed class SettingUiModel(
         override val category: SettingCategory,
         override val name: String,
         val value: Boolean,
+        val details: String,
     ) : SettingUiModel(category = category, name = name)
 }
 

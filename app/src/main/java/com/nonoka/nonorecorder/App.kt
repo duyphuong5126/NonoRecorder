@@ -23,7 +23,7 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
-        generalConfigDataSource.getInt(DARK_THEME.name)?.let {
+        generalConfigDataSource.getInt(DARK_THEME.id)?.let {
             nightModeSetting = NightMode.fromId(it)
         }
     }

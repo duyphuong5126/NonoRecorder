@@ -60,9 +60,7 @@ class TutorialActivity : AppCompatActivity() {
     fun TutorialsPage(
         mode: TutorialMode
     ) {
-        NonoTheme(
-            context = this,
-        ) {
+        NonoTheme {
             Scaffold(
                 topBar = {
                     TopAppBar(
