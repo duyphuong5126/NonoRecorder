@@ -15,6 +15,12 @@ class HomeViewModel : ViewModel() {
     var hasAccessibilityPermission by mutableStateOf(false)
         private set
 
+    var showAudioPermissionRationale by mutableStateOf(false)
+
+    var showPostNotificationPermissionRationale by mutableStateOf(false)
+
+    var showDrawOverlayPermissionRationale by mutableStateOf(false)
+
     fun initPermission(
         canDrawOverlay: Boolean,
         canRecordAudio: Boolean,

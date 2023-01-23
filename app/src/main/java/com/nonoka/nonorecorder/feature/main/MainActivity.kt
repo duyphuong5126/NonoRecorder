@@ -18,7 +18,6 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
@@ -90,9 +89,7 @@ class MainActivity : AppCompatActivity() {
             if (it.resultCode == RESULT_OK || it.resultCode == RESULT_CANCELED) {
                 homeViewModel.drawOverlayPermissionStateChange(Settings.canDrawOverlays(this))
                 if (!Settings.canDrawOverlays(this)) {
-                    MaterialAlertDialogBuilder(this).setTitle(R.string.permission_required_title)
-                        .setMessage(R.string.accessibility_permission_required_message)
-                        .setPositiveButton(R.string.action_ok, null).show()
+                    homeViewModel.showDrawOverlayPermissionRationale = true
                 }
             }
         }
@@ -162,11 +159,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (shouldShowRequestPermissionRationale(POST_NOTIFICATIONS)) {
-                MaterialAlertDialogBuilder(this).setTitle(R.string.permission_required_title)
-                    .setMessage(R.string.post_notification_permission_required_message)
-                    .setPositiveButton(R.string.action_ok) { _, _ ->
-                        handleNotificationPermission()
-                    }.show()
+                homeViewModel.showPostNotificationPermissionRationale = true
             } else {
                 handleNotificationPermission()
             }
@@ -291,22 +284,15 @@ class MainActivity : AppCompatActivity() {
                             composable(homeRouteName) {
                                 HomePage(
                                     viewModel = homeViewModel,
-                                    handleDrawOverlayPermission = {
-                                        val intent = Intent(
-                                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                            Uri.parse("package:$packageName")
-                                        )
-                                        drawOverlayPermissionRequestLauncher.launch(
-                                            Intent.createChooser(
-                                                intent, "Settings app"
-                                            )
-                                        )
-                                    },
+                                    handleDrawOverlayPermission = this@MainActivity::requestDrawOverlayPermission,
+                                    requestDrawOverlayPermission = this@MainActivity::requestDrawOverlayPermission,
                                     handleAudioPermission = this@MainActivity::handleAudioPermission,
+                                    requestAudioPermission = this@MainActivity::requestAudioPermission,
                                     handleAccessibilityPermission = {
                                         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                                         startActivity(intent)
                                     },
+                                    requestPostNotificationPermission = this@MainActivity::handleNotificationPermission,
                                     handleLearnMore = { tutorialMode ->
                                         TutorialActivity.start(this@MainActivity, tutorialMode)
                                     }
@@ -318,15 +304,6 @@ class MainActivity : AppCompatActivity() {
                                     recordedListViewModel,
                                     onStartPlaying = { file ->
                                         recordedListViewModel.generatePlayingList(file)
-                                    },
-                                    onDeleteFile = { filePath ->
-                                        MaterialAlertDialogBuilder(this@MainActivity).setTitle(R.string.delete_file_title)
-                                            .setMessage(R.string.delete_file_message)
-                                            .setPositiveButton(
-                                                R.string.action_yes
-                                            ) { _, _ ->
-                                                recordedListViewModel.deleteFile(filePath)
-                                            }.setNegativeButton(R.string.action_no, null).show()
                                     },
                                     onRenameFile = this@MainActivity::onRenameFile,
                                 )
@@ -390,26 +367,24 @@ class MainActivity : AppCompatActivity() {
                 this, RECORD_AUDIO
             )
         ) {
-            MaterialAlertDialogBuilder(this).setTitle(R.string.permission_required_title)
-                .setMessage(R.string.record_audio_permission_required_message)
-                .setPositiveButton(R.string.action_yes) { _, _ ->
-                    ActivityCompat.requestPermissions(
-                        this, arrayOf(RECORD_AUDIO), URGENT_AUDIO_PERMISSION_REQUEST_CODE
-                    )
-                }.setNegativeButton(R.string.action_no, null)
-                .show()
+            homeViewModel.showAudioPermissionRationale = true
         } else {
-            ActivityCompat.requestPermissions(
-                this, arrayOf(RECORD_AUDIO), URGENT_AUDIO_PERMISSION_REQUEST_CODE
-            )
+            requestAudioPermission()
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private fun handleNotificationPermission() {
+    private fun requestAudioPermission() {
         ActivityCompat.requestPermissions(
-            this, arrayOf(POST_NOTIFICATIONS), POST_NOTIFICATION_PERMISSION_REQUEST_CODE
+            this, arrayOf(RECORD_AUDIO), URGENT_AUDIO_PERMISSION_REQUEST_CODE
         )
+    }
+
+    private fun handleNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(
+                this, arrayOf(POST_NOTIFICATIONS), POST_NOTIFICATION_PERMISSION_REQUEST_CODE
+            )
+        }
     }
 
     private fun getIconRes(route: MainNavigationRoute): Int {
@@ -448,6 +423,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialog.show()
+    }
+
+    private fun requestDrawOverlayPermission() {
+        val intent = Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            Uri.parse("package:$packageName")
+        )
+        drawOverlayPermissionRequestLauncher.launch(
+            Intent.createChooser(
+                intent, "Settings app"
+            )
+        )
     }
 
     companion object {

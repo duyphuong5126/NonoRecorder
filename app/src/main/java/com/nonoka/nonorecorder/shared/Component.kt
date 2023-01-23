@@ -86,7 +86,7 @@ fun YesNoDialog(
     yesLabel: String = stringResource(id = R.string.action_yes),
     noLabel: String = stringResource(id = R.string.action_no),
     onDismiss: () -> Unit,
-    onAnswerYes: () -> Unit,
+    onAnswerYes: () -> Unit = {},
     onAnswerNo: () -> Unit = {},
     properties: DialogProperties = DialogProperties(),
 ) {

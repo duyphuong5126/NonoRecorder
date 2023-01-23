@@ -19,8 +19,8 @@
 
     <string name="permission_required_title">Permission required</string>
 
-    <string name="accessibility_permission_required_message">This app requires \"Display over other apps\" permission to perform audio recording.\nPlease consider enabling it.</string>
-    <string name="record_audio_permission_required_message">This app requires audio recording permission.\nDo you want to enable it?</string>
+    <string name="accessibility_permission_required_message">This app requires \"Display over other apps\" permission to perform audio recording. Please consider enabling it.</string>
+    <string name="record_audio_permission_required_message">This app requires audio recording permission. Do you want to enable it?</string>
     <string name="post_notification_permission_required_message">Please consider granting post notification permission, so the app can notify you when it\'s recording.</string>
 
     <string name="delete_file_title">Confirm deletion</string>

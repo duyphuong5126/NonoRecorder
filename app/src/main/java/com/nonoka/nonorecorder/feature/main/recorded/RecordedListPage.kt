@@ -71,7 +71,6 @@ import kotlinx.coroutines.launch
 fun RecordedListPage(
     recordedListViewModel: RecordedListViewModel,
     onStartPlaying: (RecordedFileUiModel) -> Unit,
-    onDeleteFile: (filePath: String) -> Unit,
     onRenameFile: (filePath: String, currentFileName: String) -> Unit,
 ) {
     Scaffold(
@@ -95,7 +94,6 @@ fun RecordedListPage(
                 recordedListViewModel = recordedListViewModel,
                 paddingValues = it,
                 onStartPlaying = onStartPlaying,
-                onDeleteFile = onDeleteFile,
                 onRenameFile = onRenameFile
             )
         } else {
@@ -147,7 +145,6 @@ private fun EmptyRecordedList(
 private fun RecordedList(
     recordedListViewModel: RecordedListViewModel,
     onStartPlaying: (RecordedFileUiModel) -> Unit,
-    onDeleteFile: (String) -> Unit,
     onRenameFile: (filePath: String, currentName: String) -> Unit,
     paddingValues: PaddingValues
 ) {
@@ -155,6 +152,9 @@ private fun RecordedList(
     val coroutineScope = rememberCoroutineScope()
     val exportFilePathHolder = remember { mutableStateOf<String?>(null) }
     val exportFile = exportFilePathHolder.value?.let(::File)
+    val deleteFilePathHolder = remember { mutableStateOf<String?>(null) }
+    val deleteFilePath = deleteFilePathHolder.value
+
     val context = LocalContext.current
     if (exportFile != null) {
         YesNoDialog(
@@ -174,6 +174,19 @@ private fun RecordedList(
                         ).show()
                     }
                 }
+            },
+        )
+    }
+
+    if (deleteFilePath != null) {
+        YesNoDialog(
+            title = stringResource(id = R.string.delete_file_title),
+            description = stringResource(id = R.string.delete_file_message),
+            onDismiss = {
+                deleteFilePathHolder.value = null
+            },
+            onAnswerYes = {
+                recordedListViewModel.deleteFile(deleteFilePath)
             },
         )
     }
@@ -218,7 +231,9 @@ private fun RecordedList(
                 is RecordedFileUiModel -> RecordedFile(
                     recordedFile = recordedItem,
                     onStartPlaying = onStartPlaying,
-                    onDeleteFile = onDeleteFile,
+                    onDeleteFile = {
+                        deleteFilePathHolder.value = it
+                    },
                     onExportFile = {
                         exportFilePathHolder.value = it
                     },
@@ -227,7 +242,9 @@ private fun RecordedList(
                 is RecordedDate -> RecordedDateItem(recordedDate = recordedItem)
                 is BrokenRecordedFileUiModel -> BrokenRecordedFile(
                     recordedFile = recordedItem,
-                    onDeleteFile = onDeleteFile
+                    onDeleteFile = {
+                        deleteFilePathHolder.value = it
+                    }
                 )
                 is FirstBannerAdUiModel -> FirstBannerAd()
             }

@@ -35,6 +35,7 @@ import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.titleAppBar
 import com.nonoka.nonorecorder.feature.tutorials.TutorialMode
+import com.nonoka.nonorecorder.shared.YesNoDialog
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,10 +43,45 @@ import timber.log.Timber
 fun HomePage(
     viewModel: HomeViewModel,
     handleDrawOverlayPermission: () -> Unit,
+    requestDrawOverlayPermission: () -> Unit,
     handleAudioPermission: () -> Unit,
+    requestAudioPermission: () -> Unit,
     handleAccessibilityPermission: () -> Unit,
+    requestPostNotificationPermission: () -> Unit,
     handleLearnMore: (TutorialMode) -> Unit
 ) {
+    if (viewModel.showAudioPermissionRationale) {
+        YesNoDialog(
+            title = stringResource(id = R.string.permission_required_title),
+            description = stringResource(id = R.string.record_audio_permission_required_message),
+            onDismiss = {
+                viewModel.showAudioPermissionRationale = false
+            },
+            onAnswerYes = requestAudioPermission,
+        )
+    }
+    if (viewModel.showPostNotificationPermissionRationale) {
+        YesNoDialog(
+            title = stringResource(id = R.string.permission_required_title),
+            description = stringResource(id = R.string.post_notification_permission_required_message),
+            yesLabel = stringResource(id = R.string.action_ok),
+            onDismiss = {
+                viewModel.showPostNotificationPermissionRationale = false
+            },
+            onAnswerYes = requestPostNotificationPermission,
+        )
+    }
+    if (viewModel.showDrawOverlayPermissionRationale) {
+        YesNoDialog(
+            title = stringResource(id = R.string.permission_required_title),
+            description = stringResource(id = R.string.accessibility_permission_required_message),
+            yesLabel = stringResource(id = R.string.action_ok),
+            onDismiss = {
+                viewModel.showDrawOverlayPermissionRationale = false
+            },
+            onAnswerYes = requestDrawOverlayPermission
+        )
+    }
     Scaffold(
         topBar = {
             TopAppBar(
