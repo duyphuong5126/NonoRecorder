@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nonoka.nonorecorder.BuildConfig
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_CHANNELS
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_ENCODING_BITRATE
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_SAMPLING_RATE
@@ -51,7 +52,9 @@ class SettingsViewModel @Inject constructor(
     fun init() {
         initRecordingSettings()
         initDisplaySettings()
-        initStorageSettings()
+        if (BuildConfig.DEBUG) {
+            initStorageSettings()
+        }
     }
 
     fun onSelectRecordingSettingOption(
