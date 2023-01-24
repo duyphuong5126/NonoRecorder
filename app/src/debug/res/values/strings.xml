@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Nono Recorder Debug</string>
-    <string name="recording_configs">Recording configs:\n- Sampling rate: %s kHz\n- Encoding bitrate: %s kbps\n- Audio channels: %s</string>
     <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
     <string name="sticky_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
     <string name="first_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
