@@ -17,6 +17,7 @@ import com.nonoka.nonorecorder.feature.main.recorded.uimodel.StartPlayingList
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -27,12 +28,18 @@ import timber.log.Timber
 class RecordedListViewModel : ViewModel() {
     val recordedList = mutableStateListOf<RecordedItem>()
     var isProcessingAudio by mutableStateOf(false)
+    var exportingFile by mutableStateOf<String?>(null)
 
     private val _startPlayingList: MutableSharedFlow<StartPlayingList> = MutableSharedFlow()
     val startPlayingList: SharedFlow<StartPlayingList> = _startPlayingList
 
     private val _toastMessage: MutableSharedFlow<String> = MutableSharedFlow()
     val toastMessage: SharedFlow<String> = _toastMessage
+    private val _exportingFileChallenge: MutableSharedFlow<String?> = MutableSharedFlow()
+    val exportingFileChallenge: SharedFlow<String?> = _exportingFileChallenge
+
+    private val exportingFileChallengeRequested = AtomicBoolean(false)
+    private val isExportingChallengeAvailable = AtomicBoolean(false)
 
     private val dateFormat = SimpleDateFormat("E, MMM dd yyyy", Locale.getDefault())
     private val dateTimeFormat = SimpleDateFormat("E, MMM dd yyyy HH:mm:ss", Locale.getDefault())
@@ -201,6 +208,27 @@ class RecordedListViewModel : ViewModel() {
                 _toastMessage.emit("Cannot rename file to $newFileName")
             }
         }
+    }
+
+    fun requestExportingFile(filePath: String?) {
+        if (isExportingChallengeAvailable.get() && !exportingFileChallengeRequested.get()) {
+            viewModelScope.launch {
+                _exportingFileChallenge.emit(filePath)
+            }
+        } else {
+            exportingFile = filePath
+        }
+    }
+
+    fun onFinishExportingFileChallenge() {
+        viewModelScope.launch {
+            _exportingFileChallenge.emit(null)
+        }
+        exportingFileChallengeRequested.compareAndSet(false, true)
+    }
+
+    fun setChallengeAvailability(challengeAvailable: Boolean) {
+        isExportingChallengeAvailable.getAndSet(challengeAvailable)
     }
 
     companion object {

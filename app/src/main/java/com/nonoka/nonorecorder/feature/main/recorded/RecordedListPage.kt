@@ -149,20 +149,20 @@ private fun RecordedList(
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    val exportFilePathHolder = remember { mutableStateOf<String?>(null) }
-    val exportFile = exportFilePathHolder.value?.let(::File)
     val deleteFilePathHolder = remember { mutableStateOf<String?>(null) }
     val deleteFilePath = deleteFilePathHolder.value
     val renameFileHolder = remember { mutableStateOf<RecordedFileUiModel?>(null) }
     val renameFile = renameFileHolder.value
 
     val context = LocalContext.current
+
+    val exportFile = recordedListViewModel.exportingFile?.let(::File)
     if (exportFile != null) {
         YesNoDialog(
             title = stringResource(id = R.string.export_file_title),
             description = stringResource(id = R.string.export_file_message, exportFolder),
             onDismiss = {
-                exportFilePathHolder.value = null
+                recordedListViewModel.exportingFile = null
             },
             onAnswerYes = {
                 coroutineScope.launch(Dispatchers.IO) {
@@ -256,7 +256,7 @@ private fun RecordedList(
                         deleteFilePathHolder.value = it
                     },
                     onExportFile = {
-                        exportFilePathHolder.value = it
+                        recordedListViewModel.requestExportingFile(it)
                     },
                     onRenameFile = {
                         renameFileHolder.value = it

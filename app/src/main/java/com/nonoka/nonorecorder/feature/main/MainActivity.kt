@@ -49,10 +49,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.nonoka.nonorecorder.App
 import com.nonoka.nonorecorder.CallRecordingService
 import com.nonoka.nonorecorder.NonoTheme
@@ -80,6 +85,8 @@ class MainActivity : AppCompatActivity() {
     private val homeViewModel: HomeViewModel by viewModels()
     private val recordedListViewModel: RecordedListViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
+
+    private var rewardedAd: RewardedAd? = null
 
     private val drawOverlayPermissionRequestLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -154,6 +161,56 @@ class MainActivity : AppCompatActivity() {
         ) {
             Timber.d("Initialized Admob, status=$it")
         }
+        val adRequest = AdRequest.Builder().build()
+        RewardedAd.load(
+            this,
+            getString(R.string.primary_rewarded_ad),
+            adRequest,
+            object : RewardedAdLoadCallback() {
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    super.onAdFailedToLoad(error)
+                    Timber.d("Ad>>> RewardedAd onAdFailedToLoad, error: $error")
+                    rewardedAd = null
+                    recordedListViewModel.setChallengeAvailability(false)
+                }
+
+                override fun onAdLoaded(ad: RewardedAd) {
+                    super.onAdLoaded(ad)
+                    Timber.d("Ad>>> RewardedAd onAdLoaded, ad: ${ad.adUnitId}")
+                    rewardedAd = ad
+                    recordedListViewModel.setChallengeAvailability(true)
+                    rewardedAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+                        override fun onAdClicked() {
+                            // Called when a click is recorded for an ad.
+                            Timber.d("Ad>>> Ad was clicked.")
+                        }
+
+                        override fun onAdDismissedFullScreenContent() {
+                            // Called when ad is dismissed.
+                            // Set the ad reference to null so you don't show the ad a second time.
+                            Timber.d("Ad>>> Ad dismissed fullscreen content.")
+                            rewardedAd = null
+                        }
+
+                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                            // Called when ad fails to show.
+                            Timber.d("Ad>>> Ad failed to show fullscreen content.")
+                            rewardedAd = null
+                        }
+
+                        override fun onAdImpression() {
+                            // Called when an impression is recorded for an ad.
+                            Timber.d("Ad>>> Ad recorded an impression.")
+                        }
+
+                        override fun onAdShowedFullScreenContent() {
+                            // Called when ad is shown.
+                            Timber.d("Ad>>> Ad showed fullscreen content.")
+                        }
+                    }
+                }
+            },
+        )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (shouldShowRequestPermissionRationale(POST_NOTIFICATIONS)) {
                 homeViewModel.showPostNotificationPermissionRationale = true
@@ -164,8 +221,8 @@ class MainActivity : AppCompatActivity() {
         homeViewModel.canDrawOverlay = canDrawOverlay
         homeViewModel.canRecordAudio = isRecordingPermissionGranted
         homeViewModel.hasAccessibilityPermission = isAccessibilitySettingsOn
+
         recordedListViewModel.initialize(filesDir.absolutePath)
-        settingsViewModel.init()
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 recordedListViewModel.startPlayingList.collect {
@@ -180,6 +237,23 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                recordedListViewModel.exportingFileChallenge.collect { exportFile ->
+                    if (exportFile != null) {
+                        rewardedAd?.show(
+                            this@MainActivity
+                        ) {
+                            Timber.d("Ad>>> Reward earned, type=${it.type}, amount=${it.amount}")
+                            recordedListViewModel.exportingFile = exportFile
+                            recordedListViewModel.onFinishExportingFileChallenge()
+                        }
+                    }
+                }
+            }
+        }
+
+        settingsViewModel.init()
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 settingsViewModel.nightMode.collect {
