@@ -14,7 +14,6 @@ import com.nonoka.nonorecorder.constant.FileConstants.mp3FileExt
 import com.nonoka.nonorecorder.constant.FileConstants.mp4FileExt
 import com.nonoka.nonorecorder.constant.FileConstants.recordedFolder
 import com.nonoka.nonorecorder.constant.IntentConstants.actionFinishedRecording
-import com.nonoka.nonorecorder.constant.IntentConstants.actionProcessingRecordedFile
 import com.nonoka.nonorecorder.constant.IntentConstants.extraDirectory
 import com.nonoka.nonorecorder.di.qualifier.GeneralSetting
 import com.nonoka.nonorecorder.di.qualifier.RecordingSetting
@@ -122,9 +121,6 @@ class VideoCallRecorder(
 
     override fun stopCallRecording(context: Context) {
         Timber.d("Recording>>> stopping video recorder")
-        context.sendBroadcast(Intent(actionProcessingRecordedFile).apply {
-            putExtra(extraDirectory, recordedVideo.parentFile?.absolutePath)
-        })
         try {
             videoRecorder?.stop()
             videoRecorder?.release()

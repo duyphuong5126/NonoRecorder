@@ -123,15 +123,16 @@ class SettingsViewModel @Inject constructor(
 
         val storedSamplingRate =
             recordingConfigDataSource.getInt(SAMPLING_RATE.id, DEFAULT_SAMPLING_RATE)
+        val storedSamplingRateIndex = samplingRateList.indexOfFirst {
+            it.value == storedSamplingRate
+        }
         recordingSettings.add(
             SelectableSetting(
                 category = SAMPLING_RATE,
                 name = "Sampling rate",
                 options = samplingRateList,
-                label = samplingRateList[0].label,
-                selectedIndex = samplingRateList.indexOfFirst {
-                    it.value == storedSamplingRate
-                }
+                label = samplingRateList[storedSamplingRateIndex].label,
+                selectedIndex = storedSamplingRateIndex
             )
         )
 
@@ -173,15 +174,16 @@ class SettingsViewModel @Inject constructor(
         )
         val storedEncodingBitrate =
             recordingConfigDataSource.getInt(ENCODING_BITRATE.id, DEFAULT_ENCODING_BITRATE)
+        val storedBitrateIndex = bitrateList.indexOfFirst {
+            it.value == storedEncodingBitrate
+        }
         recordingSettings.add(
             SelectableSetting(
                 category = ENCODING_BITRATE,
                 name = "Encoding bitrate",
                 options = bitrateList,
-                label = bitrateList[0].label,
-                selectedIndex = bitrateList.indexOfFirst {
-                    it.value == storedEncodingBitrate
-                }
+                label = bitrateList[storedBitrateIndex].label,
+                selectedIndex = storedBitrateIndex
             )
         )
 
@@ -202,15 +204,16 @@ class SettingsViewModel @Inject constructor(
         )
         val storedAudioChannelCount =
             recordingConfigDataSource.getInt(AUDIO_CHANNELS.id, DEFAULT_CHANNELS)
+        val storedChannelCountIndex = audioChannelList.indexOfFirst {
+            it.value == storedAudioChannelCount
+        }
         recordingSettings.add(
             SelectableSetting(
                 category = AUDIO_CHANNELS,
                 name = "Audio channels",
                 options = audioChannelList,
-                label = audioChannelList[0].label,
-                selectedIndex = audioChannelList.indexOfFirst {
-                    it.value == storedAudioChannelCount
-                }
+                label = audioChannelList[storedChannelCountIndex].label,
+                selectedIndex = storedChannelCountIndex
             )
         )
     }

@@ -245,9 +245,12 @@ private fun RecordedList(
             }
         }
 
-        items(items = recordedListViewModel.recordedList, key = { item ->
-            item.hashCode()
-        }) { recordedItem ->
+        items(
+            items = recordedListViewModel.recordedList,
+            key = { item ->
+                item.id
+            },
+        ) { recordedItem ->
             when (recordedItem) {
                 is RecordedFileUiModel -> RecordedFile(
                     recordedFile = recordedItem,

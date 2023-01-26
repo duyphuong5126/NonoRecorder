@@ -61,12 +61,6 @@ class RecordedListViewModel : ViewModel() {
                         file.lastModified()
                     }
                 }?.forEachIndexed { index, file ->
-                    val dateModified = dateFormat.format(file.lastModified())
-                    if (lastDateModified != dateModified) {
-                        recordedFiles.add(RecordedDate(dateModified))
-                        lastDateModified = dateModified
-                    }
-
                     try {
                         retriever.setDataSource(file.absolutePath)
                         val title =
@@ -75,23 +69,29 @@ class RecordedListViewModel : ViewModel() {
                         val durationMillis =
                             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                                 ?.toLong() ?: 0L
-                        recordedFiles.add(
-                            RecordedFileUiModel(
-                                id = index,
-                                name = title,
-                                duration = DurationFormatUtils.formatDuration(
-                                    durationMillis,
-                                    durationFormat
-                                ),
-                                lastModified = dateTimeFormat.format(file.lastModified()),
-                                filePath = file.absolutePath,
-                                nameWithoutExtension = file.nameWithoutExtension,
+
+                        if (durationMillis > 0) {
+                            val dateModified = dateFormat.format(file.lastModified())
+                            if (lastDateModified != dateModified) {
+                                recordedFiles.add(RecordedDate(dateModified))
+                                lastDateModified = dateModified
+                            }
+                            recordedFiles.add(
+                                RecordedFileUiModel(
+                                    name = title,
+                                    duration = DurationFormatUtils.formatDuration(
+                                        durationMillis,
+                                        durationFormat
+                                    ),
+                                    lastModified = dateTimeFormat.format(file.lastModified()),
+                                    filePath = file.absolutePath,
+                                    nameWithoutExtension = file.nameWithoutExtension,
+                                )
                             )
-                        )
+                        }
                     } catch (error: Throwable) {
                         recordedFiles.add(
                             BrokenRecordedFileUiModel(
-                                id = index,
                                 name = file.name,
                                 lastModified = dateTimeFormat.format(file.lastModified()),
                                 filePath = file.absolutePath
@@ -131,7 +131,8 @@ class RecordedListViewModel : ViewModel() {
 
     fun deleteFile(filePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val deleted: Boolean = recordedList.firstOrNull {
+            val recordedFiles = ArrayList<RecordedItem>(recordedList)
+            val deleted: Boolean = recordedFiles.firstOrNull {
                 (it is RecordedFileUiModel && it.filePath == filePath) || (it is BrokenRecordedFileUiModel && it.filePath == filePath)
             }?.let {
                 return@let if (it is RecordedFileUiModel) it.filePath else if (it is BrokenRecordedFileUiModel) it.filePath else null
@@ -146,7 +147,7 @@ class RecordedListViewModel : ViewModel() {
             } ?: false
             if (deleted) {
                 var deletedItemDateTime = ""
-                recordedList.removeAll {
+                recordedFiles.removeAll {
                     if (it is RecordedFileUiModel && it.filePath == filePath) {
                         deletedItemDateTime = it.lastModified
                         true
@@ -156,7 +157,7 @@ class RecordedListViewModel : ViewModel() {
                     } else false
                 }
                 val remainedDateTimeList = arrayListOf<String>()
-                recordedList.forEach {
+                recordedFiles.forEach {
                     if (it is RecordedFileUiModel) {
                         remainedDateTimeList.add(it.lastModified)
                     } else if (it is BrokenRecordedFileUiModel) {
@@ -164,12 +165,14 @@ class RecordedListViewModel : ViewModel() {
                     }
                 }
                 if (deletedItemDateTime.isNotBlank()) {
-                    recordedList.removeAll {
+                    recordedFiles.removeAll {
                         it is RecordedDate && deletedItemDateTime.contains(it.date) && remainedDateTimeList.none { dateTime ->
                             dateTime.contains(it.date)
                         }
                     }
                 }
+                recordedList.clear()
+                recordedList.addAll(recordedFiles)
             } else {
                 _toastMessage.emit("Cannot delete file $filePath")
             }
