@@ -74,6 +74,7 @@ import com.nonoka.nonorecorder.feature.main.settings.SettingsViewModel
 import com.nonoka.nonorecorder.feature.player.AudioPlayerActivity
 import com.nonoka.nonorecorder.feature.tutorials.TutorialActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -146,7 +147,12 @@ class MainActivity : AppCompatActivity() {
     private val recordingFinishedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == actionFinishedRecording) {
+                recordedListViewModel.isRefreshing = true
                 intent.getStringExtra(extraDirectory)?.let(recordedListViewModel::refresh)
+                lifecycleScope.launch {
+                    delay(5000)
+                    recordedListViewModel.isRefreshing = false
+                }
             }
         }
     }

@@ -121,6 +121,7 @@ class VideoCallRecorder(
 
     override fun stopCallRecording(context: Context) {
         Timber.d("Recording>>> stopping video recorder")
+        val handler = Handler(Looper.getMainLooper())
         try {
             videoRecorder?.stop()
             videoRecorder?.release()
@@ -136,7 +137,7 @@ class VideoCallRecorder(
             if (useSharedStorage.get()) {
                 try {
                     context.createSharedAudioFile(outputMp3File)
-                    Handler(Looper.getMainLooper()).post {
+                    handler.post {
                         Toast.makeText(
                             context,
                             "Saved file ${outputMp3File.name} to $exportFolder folder",
@@ -144,7 +145,7 @@ class VideoCallRecorder(
                         ).show()
                     }
                 } catch (error: Throwable) {
-                    Handler(Looper.getMainLooper()).post {
+                    handler.post {
                         Toast.makeText(
                             context,
                             "Could not save mp3 file ${outputMp3File.nameWithoutExtension}",
@@ -166,7 +167,8 @@ class VideoCallRecorder(
         Timber.d("Recording>>> video recorder stopped")
 
         ioScope.launch {
-            delay(10000)
+            delay(3000)
+            Timber.d("Recording>>> send stop recording broadcast")
             context.sendBroadcast(Intent(actionFinishedRecording).apply {
                 putExtra(extraDirectory, recordedVideo.parentFile?.absolutePath)
             })

@@ -27,7 +27,7 @@ import timber.log.Timber
 
 class RecordedListViewModel : ViewModel() {
     val recordedList = mutableStateListOf<RecordedItem>()
-    var isProcessingAudio by mutableStateOf(false)
+    var isRefreshing by mutableStateOf(false)
     var exportingFile by mutableStateOf<String?>(null)
 
     private val _startPlayingList: MutableSharedFlow<StartPlayingList> = MutableSharedFlow()
@@ -44,15 +44,23 @@ class RecordedListViewModel : ViewModel() {
     private val dateFormat = SimpleDateFormat("E, MMM dd yyyy", Locale.getDefault())
     private val dateTimeFormat = SimpleDateFormat("E, MMM dd yyyy HH:mm:ss", Locale.getDefault())
     private val durationFormat = "HH:mm:ss"
+    private var recordedFolderPath = ""
 
     fun initialize(generalFileDirPath: String) {
-        refresh(File(generalFileDirPath, recordedFolder).absolutePath)
+        recordedFolderPath = File(generalFileDirPath, recordedFolder).absolutePath
+        refresh(recordedFolderPath)
     }
 
-    fun refresh(recordedDirectoryPath: String) {
+    fun refresh(recordedDirectoryPath: String = "") {
+        val targetPath = when {
+            recordedDirectoryPath.isNotBlank() -> recordedDirectoryPath
+            recordedFolderPath.isNotBlank() -> recordedFolderPath
+            else -> return
+        }
+        Timber.d("Recording>>> refresh targetPath=$targetPath")
         try {
             viewModelScope.launch(Dispatchers.IO) {
-                val recordedDirectory = File(recordedDirectoryPath)
+                val recordedDirectory = File(targetPath)
                 val retriever = MediaMetadataRetriever()
                 var lastDateModified = ""
                 val recordedFiles = arrayListOf<RecordedItem>()

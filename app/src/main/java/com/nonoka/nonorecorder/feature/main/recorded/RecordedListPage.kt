@@ -107,6 +107,7 @@ private fun EmptyRecordedList(
     recordedListViewModel: RecordedListViewModel,
     paddingValues: PaddingValues
 ) {
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -115,7 +116,7 @@ private fun EmptyRecordedList(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        if (recordedListViewModel.isProcessingAudio) {
+        if (recordedListViewModel.isRefreshing) {
             GifImage(
                 gifResId = if (isDarkTheme()) R.drawable.ic_loading_dark_24dp else R.drawable.ic_loading_light_24dp,
                 modifier = Modifier.fillMaxWidth()
@@ -124,7 +125,7 @@ private fun EmptyRecordedList(
             Box(modifier = Modifier.height(Dimens.normalSpace))
 
             Text(
-                text = "Processing new file",
+                text = "Loading",
                 style = MaterialTheme.typography.bodyLarge,
             )
         } else {
@@ -137,6 +138,19 @@ private fun EmptyRecordedList(
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
             )
+
+            Box(modifier = Modifier.height(Dimens.normalSpace))
+
+            Button(onClick = {
+                recordedListViewModel.isRefreshing = true
+                recordedListViewModel.refresh()
+                coroutineScope.launch {
+                    delay(2000)
+                    recordedListViewModel.isRefreshing = false
+                }
+            }) {
+                Text(text = "Refresh")
+            }
         }
     }
 }
@@ -219,7 +233,7 @@ private fun RecordedList(
         verticalArrangement = Arrangement.Top,
         state = listState
     ) {
-        if (recordedListViewModel.isProcessingAudio) {
+        if (recordedListViewModel.isRefreshing) {
             item {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
