@@ -62,6 +62,7 @@ import com.nonoka.nonorecorder.shared.YesNoDialog
 import com.nonoka.nonorecorder.shared.createSharedAudioFile
 import com.nonoka.nonorecorder.shared.exportFolder
 import java.io.File
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -74,6 +75,7 @@ fun RecordedListPage(
     recordedListViewModel: RecordedListViewModel,
     onStartPlaying: (RecordedFileUiModel) -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -97,7 +99,11 @@ fun RecordedListPage(
                 onStartPlaying = onStartPlaying,
             )
         } else {
-            EmptyRecordedList(recordedListViewModel = recordedListViewModel, paddingValues = it)
+            EmptyRecordedList(
+                recordedListViewModel = recordedListViewModel,
+                paddingValues = it,
+                coroutineScope = coroutineScope,
+            )
         }
     }
 }
@@ -105,9 +111,9 @@ fun RecordedListPage(
 @Composable
 private fun EmptyRecordedList(
     recordedListViewModel: RecordedListViewModel,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    coroutineScope: CoroutineScope,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -139,7 +145,7 @@ private fun EmptyRecordedList(
                 textAlign = TextAlign.Center,
             )
 
-            Box(modifier = Modifier.height(Dimens.normalSpace))
+            Box(modifier = Modifier.height(Dimens.largeSpace))
 
             Button(onClick = {
                 recordedListViewModel.isRefreshing = true
