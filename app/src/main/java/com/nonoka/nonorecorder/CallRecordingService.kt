@@ -12,14 +12,19 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.graphics.PixelFormat
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import android.widget.Toast
+import android.widget.Toast.LENGTH_SHORT
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -34,6 +39,7 @@ import com.nonoka.nonorecorder.domain.entity.SettingCategory.ENCODING_BITRATE
 import com.nonoka.nonorecorder.infrastructure.ConfigDataSource
 import com.nonoka.nonorecorder.recorder.CallRecorder
 import com.nonoka.nonorecorder.recorder.VideoCallRecorder
+import com.nonoka.nonorecorder.shared.doWhile
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.DecimalFormat
 import java.util.concurrent.atomic.AtomicBoolean
@@ -126,6 +132,15 @@ class CallRecordingService : AccessibilityService() {
             Settings.canDrawOverlays(this@CallRecordingService) &&
                     isRecordingPermissionGranted &&
                     isAccessibilitySettingsOn
+
+    private val isBluetoothConnected: Boolean
+        get() {
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val isBluetoothConnected = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+                .any { info -> info.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO || info.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP }
+            Timber.d("Recording>>> isBluetoothConnected=$isBluetoothConnected")
+            return isBluetoothConnected
+        }
 
     private val lastTimePermissionsReady = AtomicBoolean(false)
 
@@ -498,27 +513,11 @@ class CallRecordingService : AccessibilityService() {
         when (newMode) {
             AudioManager.MODE_IN_CALL -> {
                 Timber.d("AudioMode>>> In a call")
-                if ((audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) && arePermissionsReady) {
-                    if (cancelRecordingTask != null) {
-                        cancelRecordingTask?.cancel()
-                        cancelRecordingTask = null
-                    } else {
-                        callRecorder.startCallRecording(this)
-                        onStartRecording()
-                    }
-                }
+                startRecording()
             }
             AudioManager.MODE_IN_COMMUNICATION -> {
                 Timber.d("AudioMode>>> In a VOIP call")
-                if ((audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) && arePermissionsReady) {
-                    if (cancelRecordingTask != null) {
-                        cancelRecordingTask?.cancel()
-                        cancelRecordingTask = null
-                    } else {
-                        callRecorder.startCallRecording(this)
-                        onStartRecording()
-                    }
-                }
+                startRecording()
             }
             AudioManager.MODE_RINGTONE -> {
                 Timber.d("AudioMode>>> In a ringtone")
@@ -555,6 +554,24 @@ class CallRecordingService : AccessibilityService() {
         audioMode = newMode
     }
     // Audio mode listening area - End
+
+    private fun startRecording() {
+        if ((audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) && arePermissionsReady) {
+            if (cancelRecordingTask != null) {
+                cancelRecordingTask?.cancel()
+                cancelRecordingTask = null
+            } else {
+                if (isBluetoothConnected) {
+                    Handler(Looper.getMainLooper()).post {
+                        val warningMessage = "Recording with bluetooth headset may not work"
+                        Toast.makeText(this, warningMessage, LENGTH_SHORT).show()
+                    }
+                }
+                callRecorder.startCallRecording(this)
+                onStartRecording()
+            }
+        }
+    }
 
     private fun onStartRecording() {
         NotificationCompat.Builder(this, CHANNEL_ID)

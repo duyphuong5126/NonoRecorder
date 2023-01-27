@@ -1,4 +1,4 @@
-package com.nonoka.nonorecorder
+package com.nonoka.nonorecorder.shared
 
 import kotlinx.coroutines.delay
 

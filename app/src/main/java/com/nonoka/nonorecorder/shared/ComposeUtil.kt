@@ -1,8 +1,9 @@
-package com.nonoka.nonorecorder
+package com.nonoka.nonorecorder.shared
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.nonoka.nonorecorder.App
 import com.nonoka.nonorecorder.theme.NightMode.Dark
 import com.nonoka.nonorecorder.theme.NightMode.System
 

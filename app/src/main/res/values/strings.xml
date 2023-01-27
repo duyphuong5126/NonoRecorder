@@ -6,7 +6,7 @@
     <string name="recorded_list_tab_label">Recorded</string>
     <string name="settings_page_title">Settings</string>
     <string name="settings_tab_label">Settings</string>
-    <string name="accessibility_service_description">Accessibility setting must be enabled</string>
+    <string name="accessibility_service_description">Nono Recorder accessibility service is responsible for recording calls. When this service is enabled, the System will allow it to access the audio stream of calls (VOIP, telephony) so it can record them.</string>
 
     <string name="waiting_for_call">Stand by - Waiting for a call</string>
     <string name="recording_call">Your call is being recorded…</string>

@@ -55,7 +55,7 @@ import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.Record
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.BrokenRecordedFileUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.FirstBannerAdUiModel
-import com.nonoka.nonorecorder.isDarkTheme
+import com.nonoka.nonorecorder.shared.isDarkTheme
 import com.nonoka.nonorecorder.shared.GifImage
 import com.nonoka.nonorecorder.shared.InputDialog
 import com.nonoka.nonorecorder.shared.YesNoDialog
