@@ -44,17 +44,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
 import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.Dimens
 import com.nonoka.nonorecorder.constant.titleAppBar
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.BrokenRecordedFileUiModel
-import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.FirstBannerAdUiModel
 import com.nonoka.nonorecorder.shared.isDarkTheme
 import com.nonoka.nonorecorder.shared.GifImage
 import com.nonoka.nonorecorder.shared.InputDialog
@@ -292,7 +287,6 @@ private fun RecordedList(
                         deleteFilePathHolder.value = it
                     }
                 )
-                is FirstBannerAdUiModel -> FirstBannerAd()
             }
         }
 
@@ -509,20 +503,5 @@ private fun RecordedDateItem(recordedDate: RecordedDate) {
         text = recordedDate.date,
         style = MaterialTheme.typography.bodyLarge,
         modifier = Modifier.padding(horizontal = Dimens.mediumSpace)
-    )
-}
-
-@SuppressLint("VisibleForTests")
-@Composable
-fun FirstBannerAd() {
-    AndroidView(
-        modifier = Modifier.fillMaxWidth(),
-        factory = { context ->
-            AdView(context).apply {
-                setAdSize(AdSize.LARGE_BANNER)
-                adUnitId = context.getString(R.string.first_banner_ad_id)
-                loadAd(AdRequest.Builder().build())
-            }
-        }
     )
 }

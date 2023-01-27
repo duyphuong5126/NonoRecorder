@@ -27,9 +27,4 @@ sealed class RecordedItem {
         override val id: String
             get() = toString()
     }
-
-    object FirstBannerAdUiModel : RecordedItem() {
-        override val id: String
-            get() = toString()
-    }
 }

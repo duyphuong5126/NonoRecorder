@@ -1,5 +1,6 @@
 package com.nonoka.nonorecorder.feature.player
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -15,6 +16,8 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.Player.Listener
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.MobileAds
 import com.nonoka.nonorecorder.R
 import com.nonoka.nonorecorder.constant.IntentConstants.extraFilePaths
 import com.nonoka.nonorecorder.constant.IntentConstants.extraStartPosition
@@ -30,11 +33,21 @@ class AudioPlayerActivity : AppCompatActivity(), View.OnClickListener {
 
     private var listener: Listener? = null
 
+    @SuppressLint("VisibleForTests")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityAudioPlayerBinding.inflate(layoutInflater)
 
         setContentView(viewBinding.root)
+
+        MobileAds.initialize(
+            this
+        ) {
+            Timber.d("Initialized Admob, status=$it")
+        }
+
+        val adRequest = AdRequest.Builder().build()
+        viewBinding.bannerAd.loadAd(adRequest)
 
         val fileList = intent.getStringArrayExtra(extraFilePaths)?.map {
             File(it)

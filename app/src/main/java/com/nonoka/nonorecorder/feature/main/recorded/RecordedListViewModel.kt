@@ -12,7 +12,6 @@ import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedDate
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.RecordedFileUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.BrokenRecordedFileUiModel
-import com.nonoka.nonorecorder.feature.main.recorded.uimodel.RecordedItem.FirstBannerAdUiModel
 import com.nonoka.nonorecorder.feature.main.recorded.uimodel.StartPlayingList
 import java.io.File
 import java.text.SimpleDateFormat
@@ -68,7 +67,7 @@ class RecordedListViewModel : ViewModel() {
                     sortByDescending { file ->
                         file.lastModified()
                     }
-                }?.forEachIndexed { index, file ->
+                }?.forEachIndexed { _, file ->
                     try {
                         retriever.setDataSource(file.absolutePath)
                         val title =
@@ -105,9 +104,6 @@ class RecordedListViewModel : ViewModel() {
                                 filePath = file.absolutePath
                             )
                         )
-                    }
-                    if (index == FIRST_BANNER_AD_INDEX) {
-                        recordedFiles.add(FirstBannerAdUiModel)
                     }
                 }
                 recordedList.clear()
@@ -240,9 +236,5 @@ class RecordedListViewModel : ViewModel() {
 
     fun setChallengeAvailability(challengeAvailable: Boolean) {
         isExportingChallengeAvailable.getAndSet(challengeAvailable)
-    }
-
-    companion object {
-        private const val FIRST_BANNER_AD_INDEX = 9
     }
 }
