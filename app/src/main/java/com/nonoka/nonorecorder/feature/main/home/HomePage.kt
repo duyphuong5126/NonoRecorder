@@ -222,7 +222,7 @@ fun HomePage(
                             Box(modifier = Modifier.height(Dimens.mediumSpace))
 
                             Text(
-                                text = "No matter what app you use to call (VOIP or telephony), please grant it these permission:\n- Phone\n- Microphone\nThese permissions is to make phone calls, and also makes the recording feature work properly.",
+                                text = "No matter what app you use to call (VOIP or telephony), please grant it these permissions:\n- Phone\n- Microphone\nThese permissions is to make phone calls, and also makes the recording feature work properly.",
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.fillMaxWidth(),
                             )
