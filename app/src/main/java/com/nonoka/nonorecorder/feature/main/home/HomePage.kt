@@ -176,21 +176,21 @@ fun HomePage(
                                 .padding(Dimens.normalSpace),
                         ) {
                             Text(
-                                text = "Display over other apps: enabled",
+                                text = "✓ Display over other apps is enabled",
                                 style = MaterialTheme.typography.bodyLarge,
                             )
 
                             Box(modifier = Modifier.height(Dimens.mediumSpace))
 
                             Text(
-                                text = "Recording permission: enabled",
+                                text = "✓ Recording permission is enabled",
                                 style = MaterialTheme.typography.bodyLarge,
                             )
 
                             Box(modifier = Modifier.height(Dimens.mediumSpace))
 
                             Text(
-                                text = "Accessibility permission: enabled",
+                                text = "✓ Accessibility service is enabled",
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                         }
