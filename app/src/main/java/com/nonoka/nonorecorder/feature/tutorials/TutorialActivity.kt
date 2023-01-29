@@ -110,6 +110,11 @@ class TutorialActivity : AppCompatActivity() {
                                 TutorialHeader(tutorialMode = mode)
                             },
                         )
+                        TutorialMode.CallAppPermissions -> CallAppPermissions(
+                            header = {
+                                TutorialHeader(tutorialMode = mode)
+                            },
+                        )
                     }
                 }
             }
@@ -147,6 +152,7 @@ class TutorialActivity : AppCompatActivity() {
             TutorialMode.AppearsOnTop -> "Display over other apps\npermission"
             TutorialMode.Recording -> "Recording permission"
             TutorialMode.Accessibility -> "Accessibility permission"
+            TutorialMode.CallAppPermissions -> "Phone and Recording\npermissions for call apps"
         }
     }
 }

@@ -155,6 +155,92 @@ fun HomePage(
                         )
                     }
                 }
+
+                item {
+                    Box(modifier = Modifier.height(Dimens.normalSpace))
+                }
+
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Dimens.mediumSpace)
+                            .clip(
+                                shape = RoundedCornerShape(Dimens.normalCornersRadius)
+                            )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(color = MaterialTheme.colorScheme.surface)
+                                .padding(Dimens.normalSpace),
+                        ) {
+                            Text(
+                                text = "Display over other apps: enabled",
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+
+                            Box(modifier = Modifier.height(Dimens.mediumSpace))
+
+                            Text(
+                                text = "Recording permission: enabled",
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+
+                            Box(modifier = Modifier.height(Dimens.mediumSpace))
+
+                            Text(
+                                text = "Accessibility permission: enabled",
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Dimens.mediumSpace)
+                            .clip(
+                                shape = RoundedCornerShape(Dimens.normalCornersRadius)
+                            )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(color = MaterialTheme.colorScheme.surface)
+                                .padding(Dimens.mediumSpace),
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            Text(
+                                text = "[Important] Grant your call app necessary permissions",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+
+                            Box(modifier = Modifier.height(Dimens.mediumSpace))
+
+                            Text(
+                                text = "No matter what app you use to call (VOIP or telephony), please grant it these permission:\n- Phone\n- Microphone\nThese permissions is to make phone calls, and also makes the recording feature work properly.",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+
+                            Box(modifier = Modifier.height(Dimens.largeSpace))
+
+                            Button(onClick = {
+                                handleLearnMore(TutorialMode.CallAppPermissions)
+                            }) {
+                                Text(text = "Learn more")
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Box(modifier = Modifier.height(Dimens.ultraLargeSpace))
+                }
             } else {
                 item {
                     Column(
@@ -197,134 +283,12 @@ fun HomePage(
                         )
                     }
                 }
-            }
 
-            item {
-                Box(modifier = Modifier.height(Dimens.normalSpace))
-            }
-
-            // Appears on top permission
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimens.mediumSpace)
-                        .clip(
-                            shape = RoundedCornerShape(Dimens.normalCornersRadius)
-                        )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(color = MaterialTheme.colorScheme.surface)
-                            .padding(Dimens.mediumSpace),
-                    ) {
-                        Text(
-                            text = "Display over other apps permission${if (viewModel.canDrawOverlay) " is enabled" else ""}",
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-
-                        Box(modifier = Modifier.height(Dimens.mediumSpace))
-
-                        Text(
-                            text = "This app needs to display over the call apps so that it can share to the audio input with them.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-
-                        Box(modifier = Modifier.height(Dimens.largeSpace))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = if (viewModel.canDrawOverlay) Arrangement.End else Arrangement.SpaceBetween,
-                        ) {
-                            if (!viewModel.canDrawOverlay) {
-                                TextButton(onClick = {
-                                    handleLearnMore(TutorialMode.AppearsOnTop)
-                                }) {
-                                    Text(
-                                        text = "Learn more",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        textDecoration = TextDecoration.Underline,
-                                    )
-                                }
-
-                                Button(onClick = handleDrawOverlayPermission) {
-                                    Text(text = "Enable")
-                                }
-                            } else {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
-                                    contentDescription = "Display over other apps permission enabled",
-                                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
-                                )
-                            }
-                        }
-                    }
+                item {
+                    Box(modifier = Modifier.height(Dimens.normalSpace))
                 }
-            }
 
-            // Recording permission
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimens.mediumSpace)
-                        .clip(
-                            shape = RoundedCornerShape(Dimens.normalCornersRadius)
-                        )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(color = MaterialTheme.colorScheme.surface)
-                            .padding(Dimens.mediumSpace),
-                    ) {
-                        Text(
-                            text = "Recording permission${if (viewModel.canRecordAudio) " is enabled" else ""}",
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-
-                        Box(modifier = Modifier.height(Dimens.mediumSpace))
-
-                        Text(
-                            text = "This app needs this permission to perform audio recording.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-
-                        Box(modifier = Modifier.height(Dimens.largeSpace))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = if (viewModel.canRecordAudio) Arrangement.End else Arrangement.SpaceBetween,
-                        ) {
-                            if (!viewModel.canRecordAudio) {
-                                TextButton(onClick = {
-                                    handleLearnMore(TutorialMode.Recording)
-                                }) {
-                                    Text(
-                                        text = "Learn more",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        textDecoration = TextDecoration.Underline,
-                                    )
-                                }
-
-                                Button(onClick = handleAudioPermission) {
-                                    Text(text = "Enable")
-                                }
-                            } else {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
-                                    contentDescription = "Recording permission enabled",
-                                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Accessibility permission
-            if (viewModel.canDrawOverlay && viewModel.canRecordAudio) {
+                // Appears on top permission
                 item {
                     Box(
                         modifier = Modifier
@@ -341,14 +305,14 @@ fun HomePage(
                                 .padding(Dimens.mediumSpace),
                         ) {
                             Text(
-                                text = "Accessibility permission${if (viewModel.hasAccessibilityPermission) " is enabled" else ""}",
+                                text = "Display over other apps permission${if (viewModel.canDrawOverlay) " is enabled" else ""}",
                                 style = MaterialTheme.typography.bodyLarge,
                             )
 
                             Box(modifier = Modifier.height(Dimens.mediumSpace))
 
                             Text(
-                                text = "This app needs accessibility permission so it can share the audio input with the call apps.",
+                                text = "This app needs to display over the call apps so that it can share to the audio input with them.",
                                 style = MaterialTheme.typography.bodySmall,
                             )
 
@@ -356,12 +320,11 @@ fun HomePage(
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = if (viewModel.hasAccessibilityPermission) Arrangement.End else Arrangement.SpaceBetween,
+                                horizontalArrangement = if (viewModel.canDrawOverlay) Arrangement.End else Arrangement.SpaceBetween,
                             ) {
-                                Timber.d("hasAccessibilityPermission=${viewModel.hasAccessibilityPermission}")
-                                if (!viewModel.hasAccessibilityPermission) {
+                                if (!viewModel.canDrawOverlay) {
                                     TextButton(onClick = {
-                                        handleLearnMore(TutorialMode.Accessibility)
+                                        handleLearnMore(TutorialMode.AppearsOnTop)
                                     }) {
                                         Text(
                                             text = "Learn more",
@@ -370,13 +333,13 @@ fun HomePage(
                                         )
                                     }
 
-                                    Button(onClick = handleAccessibilityPermission) {
+                                    Button(onClick = handleDrawOverlayPermission) {
                                         Text(text = "Enable")
                                     }
                                 } else {
                                     Image(
                                         painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
-                                        contentDescription = "Accessibility permission enabled",
+                                        contentDescription = "Display over other apps permission enabled",
                                         colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
                                     )
                                 }
@@ -384,10 +347,133 @@ fun HomePage(
                         }
                     }
                 }
-            }
 
-            item {
-                Box(modifier = Modifier.height(Dimens.ultraLargeSpace))
+                // Recording permission
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Dimens.mediumSpace)
+                            .clip(
+                                shape = RoundedCornerShape(Dimens.normalCornersRadius)
+                            )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(color = MaterialTheme.colorScheme.surface)
+                                .padding(Dimens.mediumSpace),
+                        ) {
+                            Text(
+                                text = "Recording permission${if (viewModel.canRecordAudio) " is enabled" else ""}",
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+
+                            Box(modifier = Modifier.height(Dimens.mediumSpace))
+
+                            Text(
+                                text = "This app needs this permission to perform audio recording.",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+
+                            Box(modifier = Modifier.height(Dimens.largeSpace))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = if (viewModel.canRecordAudio) Arrangement.End else Arrangement.SpaceBetween,
+                            ) {
+                                if (!viewModel.canRecordAudio) {
+                                    TextButton(onClick = {
+                                        handleLearnMore(TutorialMode.Recording)
+                                    }) {
+                                        Text(
+                                            text = "Learn more",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            textDecoration = TextDecoration.Underline,
+                                        )
+                                    }
+
+                                    Button(onClick = handleAudioPermission) {
+                                        Text(text = "Enable")
+                                    }
+                                } else {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
+                                        contentDescription = "Recording permission enabled",
+                                        colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Accessibility permission
+                if (viewModel.canDrawOverlay && viewModel.canRecordAudio) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Dimens.mediumSpace)
+                                .clip(
+                                    shape = RoundedCornerShape(Dimens.normalCornersRadius)
+                                )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(color = MaterialTheme.colorScheme.surface)
+                                    .padding(Dimens.mediumSpace),
+                            ) {
+                                Text(
+                                    text = "Accessibility permission${if (viewModel.hasAccessibilityPermission) " is enabled" else ""}",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+
+                                Box(modifier = Modifier.height(Dimens.mediumSpace))
+
+                                Text(
+                                    text = "This app needs accessibility permission so it can share the audio input with the call apps.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+
+                                Box(modifier = Modifier.height(Dimens.largeSpace))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = if (viewModel.hasAccessibilityPermission) Arrangement.End else Arrangement.SpaceBetween,
+                                ) {
+                                    Timber.d("hasAccessibilityPermission=${viewModel.hasAccessibilityPermission}")
+                                    if (!viewModel.hasAccessibilityPermission) {
+                                        TextButton(onClick = {
+                                            handleLearnMore(TutorialMode.Accessibility)
+                                        }) {
+                                            Text(
+                                                text = "Learn more",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                textDecoration = TextDecoration.Underline,
+                                            )
+                                        }
+
+                                        Button(onClick = handleAccessibilityPermission) {
+                                            Text(text = "Enable")
+                                        }
+                                    } else {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.ic_square_check_regular_24dp),
+                                            contentDescription = "Accessibility permission enabled",
+                                            colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Box(modifier = Modifier.height(Dimens.ultraLargeSpace))
+                }
             }
         }
     }
