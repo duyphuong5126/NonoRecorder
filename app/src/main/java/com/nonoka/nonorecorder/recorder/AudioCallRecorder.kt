@@ -46,7 +46,7 @@ class AudioCallRecorder : CallRecorder {
     override val isRecording: Boolean
         get() = isRecordingAudio.get()
 
-    override fun startCallRecording(context: Context) {
+    override fun startCallRecording(context: Context, audioSource: Int) {
         Timber.d("Recording>>> starting audio recorder")
         if (checkSelfPermission(
                 context,

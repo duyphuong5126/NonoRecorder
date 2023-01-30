@@ -14,6 +14,7 @@ import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.graphics.PixelFormat
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.media.MediaRecorder
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -513,11 +514,11 @@ class CallRecordingService : AccessibilityService() {
         when (newMode) {
             AudioManager.MODE_IN_CALL -> {
                 Timber.d("AudioMode>>> In a call")
-                startRecording()
+                startRecording(MediaRecorder.AudioSource.VOICE_CALL)
             }
             AudioManager.MODE_IN_COMMUNICATION -> {
                 Timber.d("AudioMode>>> In a VOIP call")
-                startRecording()
+                startRecording(MediaRecorder.AudioSource.VOICE_RECOGNITION)
             }
             AudioManager.MODE_RINGTONE -> {
                 Timber.d("AudioMode>>> In a ringtone")
@@ -555,7 +556,7 @@ class CallRecordingService : AccessibilityService() {
     }
     // Audio mode listening area - End
 
-    private fun startRecording() {
+    private fun startRecording(audioSource: Int) {
         if ((audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) && arePermissionsReady) {
             if (cancelRecordingTask != null) {
                 cancelRecordingTask?.cancel()
@@ -567,7 +568,7 @@ class CallRecordingService : AccessibilityService() {
                         Toast.makeText(this, warningMessage, LENGTH_SHORT).show()
                     }
                 }
-                callRecorder.startCallRecording(this)
+                callRecorder.startCallRecording(this, audioSource)
                 onStartRecording()
             }
         }

@@ -61,7 +61,7 @@ class VideoCallRecorder(
     override val isRecording: Boolean
         get() = isRecordingAudio.get()
 
-    override fun startCallRecording(context: Context) {
+    override fun startCallRecording(context: Context, audioSource: Int) {
         Timber.d("Recording>>> starting video recorder")
         filePartIndex.getAndSet(0)
         useSharedStorage.compareAndSet(
@@ -77,7 +77,7 @@ class VideoCallRecorder(
             }
             initMediaOutputFile(context)
             // This must be needed source
-            recorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+            recorder.setAudioSource(audioSource)
 
             recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             recorder.setOutputFile(recordedVideo.absolutePath)
