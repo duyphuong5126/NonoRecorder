@@ -210,7 +210,7 @@ fun HomePage(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(color = MaterialTheme.colorScheme.surface)
-                                .padding(Dimens.mediumSpace),
+                                .padding(Dimens.normalSpace),
                             horizontalAlignment = Alignment.End
                         ) {
                             Text(
@@ -236,10 +236,6 @@ fun HomePage(
                             }
                         }
                     }
-                }
-
-                item {
-                    Box(modifier = Modifier.height(Dimens.ultraLargeSpace))
                 }
             } else {
                 item {
@@ -302,7 +298,7 @@ fun HomePage(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(color = MaterialTheme.colorScheme.surface)
-                                .padding(Dimens.mediumSpace),
+                                .padding(Dimens.normalSpace),
                         ) {
                             Text(
                                 text = "Display over other apps permission${if (viewModel.canDrawOverlay) " is enabled" else ""}",
@@ -362,7 +358,7 @@ fun HomePage(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(color = MaterialTheme.colorScheme.surface)
-                                .padding(Dimens.mediumSpace),
+                                .padding(Dimens.normalSpace),
                         ) {
                             Text(
                                 text = "Recording permission${if (viewModel.canRecordAudio) " is enabled" else ""}",
@@ -423,7 +419,7 @@ fun HomePage(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(color = MaterialTheme.colorScheme.surface)
-                                    .padding(Dimens.mediumSpace),
+                                    .padding(Dimens.normalSpace),
                             ) {
                                 Text(
                                     text = "Accessibility permission${if (viewModel.hasAccessibilityPermission) " is enabled" else ""}",
@@ -470,10 +466,43 @@ fun HomePage(
                         }
                     }
                 }
+            }
 
-                item {
-                    Box(modifier = Modifier.height(Dimens.ultraLargeSpace))
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimens.mediumSpace)
+                        .clip(
+                            shape = RoundedCornerShape(Dimens.normalCornersRadius)
+                        )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(color = MaterialTheme.colorScheme.surface)
+                            .padding(Dimens.normalSpace),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text(
+                            text = "[Important] This app does not support recording via wired or wireless headsets",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+
+                        Box(modifier = Modifier.height(Dimens.mediumSpace))
+
+                        Text(
+                            text = "When the phone is connected to those headsets, this app can still record your call.\nHowever, the recording result may not contain the voice of you or other people in that call.",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
+            }
+
+            item {
+                Box(modifier = Modifier.height(Dimens.ultraLargeSpace))
             }
         }
     }
