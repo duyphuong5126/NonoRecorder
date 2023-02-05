@@ -8,42 +8,50 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.graphics.PixelFormat
-import android.media.AudioDeviceInfo
-import android.media.AudioManager
-import android.media.MediaRecorder
+import android.media.AudioManager.MODE_CALL_REDIRECT
+import android.media.AudioManager.MODE_CALL_SCREENING
+import android.media.AudioManager.MODE_COMMUNICATION_REDIRECT
+import android.media.AudioManager.MODE_CURRENT
+import android.media.AudioManager.MODE_INVALID
+import android.media.AudioManager.MODE_IN_CALL
+import android.media.AudioManager.MODE_IN_COMMUNICATION
+import android.media.AudioManager.MODE_NORMAL
+import android.media.AudioManager.MODE_RINGTONE
+import android.media.MediaRecorder.AudioSource.VOICE_CALL
+import android.media.MediaRecorder.AudioSource.VOICE_RECOGNITION
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.provider.Settings
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import android.widget.Toast
-import android.widget.Toast.LENGTH_SHORT
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.BigTextStyle
 import androidx.core.content.ContextCompat
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_CHANNELS
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_ENCODING_BITRATE
 import com.nonoka.nonorecorder.constant.AppConstants.DEFAULT_SAMPLING_RATE
 import com.nonoka.nonorecorder.di.qualifier.GeneralSetting
 import com.nonoka.nonorecorder.di.qualifier.RecordingSetting
-import com.nonoka.nonorecorder.domain.entity.SettingCategory.SAMPLING_RATE
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.AUDIO_CHANNELS
 import com.nonoka.nonorecorder.domain.entity.SettingCategory.ENCODING_BITRATE
+import com.nonoka.nonorecorder.domain.entity.SettingCategory.SAMPLING_RATE
 import com.nonoka.nonorecorder.infrastructure.ConfigDataSource
 import com.nonoka.nonorecorder.recorder.CallRecorder
 import com.nonoka.nonorecorder.recorder.VideoCallRecorder
+import com.nonoka.nonorecorder.shared.audioManager
 import com.nonoka.nonorecorder.shared.doWhile
+import com.nonoka.nonorecorder.shared.isBluetoothConnected
+import com.nonoka.nonorecorder.shared.notificationManager
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.DecimalFormat
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -76,7 +84,8 @@ class CallRecordingService : AccessibilityService() {
 
     private lateinit var callRecorder: CallRecorder
 
-    private var audioMode = AudioManager.MODE_INVALID
+    private var _audioMode = AtomicInteger(MODE_INVALID)
+    private val audioMode: Int get() = _audioMode.get()
 
     private val pendingIntent: PendingIntent
         get() =
@@ -134,15 +143,6 @@ class CallRecordingService : AccessibilityService() {
                     isRecordingPermissionGranted &&
                     isAccessibilitySettingsOn
 
-    private val isBluetoothConnected: Boolean
-        get() {
-            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            val isBluetoothConnected = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-                .any { info -> info.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO || info.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP }
-            Timber.d("Recording>>> isBluetoothConnected=$isBluetoothConnected")
-            return isBluetoothConnected
-        }
-
     private val lastTimePermissionsReady = AtomicBoolean(false)
 
     private var cancelRecordingTask: Job? = null
@@ -175,7 +175,7 @@ class CallRecordingService : AccessibilityService() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
         // Start listening to Audio mode change
-        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val audioManager = this.audioManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             audioManager.addOnModeChangedListener({
                 onAudioModeChange(audioManager.mode)
@@ -224,10 +224,7 @@ class CallRecordingService : AccessibilityService() {
                 .setContentTitle(getText(if (lastTimeReady) R.string.waiting_for_call else R.string.permissions_not_enough_title))
                 .apply {
                     if (BuildConfig.DEBUG && lastTimeReady) {
-                        setStyle(
-                            NotificationCompat.BigTextStyle()
-                                .bigText(standbyNotificationContentText)
-                        )
+                        setStyle(BigTextStyle().bigText(standbyNotificationContentText))
                     }
                 }
                 .setSmallIcon(if (lastTimeReady) R.drawable.ic_standby_24dp else R.drawable.ic_info_24dp)
@@ -503,8 +500,7 @@ class CallRecordingService : AccessibilityService() {
             )
             channel.lightColor = ContextCompat.getColor(this, R.color.greenPrimary)
             channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-            val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            service.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(channel)
         }
         return CHANNEL_ID
     }
@@ -512,64 +508,62 @@ class CallRecordingService : AccessibilityService() {
     // Audio mode listening area - Start
     private fun onAudioModeChange(newMode: Int) {
         when (newMode) {
-            AudioManager.MODE_IN_CALL -> {
+            MODE_IN_CALL -> {
                 Timber.d("AudioMode>>> In a call")
-                startRecording(MediaRecorder.AudioSource.VOICE_CALL)
+                startRecording(VOICE_CALL)
             }
-            AudioManager.MODE_IN_COMMUNICATION -> {
+            MODE_IN_COMMUNICATION -> {
                 Timber.d("AudioMode>>> In a VOIP call")
-                startRecording(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+                startRecording(VOICE_RECOGNITION)
             }
-            AudioManager.MODE_RINGTONE -> {
+            MODE_RINGTONE -> {
                 Timber.d("AudioMode>>> In a ringtone")
             }
-            AudioManager.MODE_CALL_SCREENING -> {
+            MODE_CALL_SCREENING -> {
                 Timber.d("AudioMode>>> In a call screening")
             }
-            AudioManager.MODE_INVALID -> {
+            MODE_INVALID -> {
                 Timber.d("AudioMode>>> Invalid")
             }
-            AudioManager.MODE_CURRENT -> {
+            MODE_CURRENT -> {
                 Timber.d("AudioMode>>> Current")
             }
-            AudioManager.MODE_NORMAL -> {
+            MODE_NORMAL -> {
                 Timber.d("AudioMode>>> Normal")
-                if (audioMode == AudioManager.MODE_IN_COMMUNICATION || audioMode == AudioManager.MODE_IN_CALL) {
-                    if (cancelRecordingTask == null) {
-                        cancelRecordingTask = ioScope.launch {
-                            delay(ALLOWED_INTERRUPTING_TIME)
-                            callRecorder.stopCallRecording(this@CallRecordingService)
-                            onStopRecording()
-                            cancelRecordingTask = null
-                        }
-                    }
-                }
+                stopRecording()
             }
-            AudioManager.MODE_CALL_REDIRECT -> {
+            MODE_CALL_REDIRECT -> {
                 Timber.d("AudioMode>>> Call redirect")
             }
-            AudioManager.MODE_COMMUNICATION_REDIRECT -> {
+            MODE_COMMUNICATION_REDIRECT -> {
                 Timber.d("AudioMode>>> VOIP call redirect")
             }
         }
-        audioMode = newMode
+        _audioMode.getAndSet(newMode)
     }
     // Audio mode listening area - End
 
     private fun startRecording(audioSource: Int) {
-        if ((audioMode != AudioManager.MODE_IN_COMMUNICATION && audioMode != AudioManager.MODE_IN_CALL) && arePermissionsReady) {
+        val mode = audioMode
+        if ((mode != MODE_IN_COMMUNICATION && mode != MODE_IN_CALL) && arePermissionsReady) {
             if (cancelRecordingTask != null) {
                 cancelRecordingTask?.cancel()
                 cancelRecordingTask = null
             } else {
-                if (isBluetoothConnected) {
-                    Handler(Looper.getMainLooper()).post {
-                        val warningMessage = "Recording with bluetooth headset may not work"
-                        Toast.makeText(this, warningMessage, LENGTH_SHORT).show()
-                    }
-                }
                 callRecorder.startCallRecording(this, audioSource)
                 onStartRecording()
+            }
+        }
+    }
+
+    private fun stopRecording() {
+        val mode = audioMode
+        if ((mode == MODE_IN_COMMUNICATION || mode == MODE_IN_CALL) && cancelRecordingTask == null) {
+            cancelRecordingTask = ioScope.launch {
+                delay(ALLOWED_INTERRUPTING_TIME)
+                callRecorder.stopCallRecording(this@CallRecordingService)
+                onStopRecording()
+                cancelRecordingTask = null
             }
         }
     }
@@ -581,10 +575,15 @@ class CallRecordingService : AccessibilityService() {
             .setContentIntent(pendingIntent)
             .setTicker(getText(R.string.recording_call))
             .setOnlyAlertOnce(true)
+            .apply {
+                if (isBluetoothConnected) {
+                    setStyle(
+                        BigTextStyle().bigText(getString(R.string.bluetooth_on_notification))
+                    )
+                }
+            }
             .build()
             .let {
-                val notificationManager =
-                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
             }
     }
@@ -600,15 +599,15 @@ class CallRecordingService : AccessibilityService() {
     private fun onPermissionRemoval() {
         NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getText(R.string.permissions_not_enough_title))
-            .setContentText(getText(R.string.permissions_not_enough_message))
+            .apply {
+                setStyle(BigTextStyle().bigText(getText(R.string.permissions_not_enough_message)))
+            }
             .setSmallIcon(R.drawable.ic_info_24dp)
             .setContentIntent(pendingIntent)
             .setTicker(getText(R.string.permissions_not_enough_title))
             .setOnlyAlertOnce(true)
             .build()
             .let {
-                val notificationManager =
-                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
             }
     }
@@ -619,7 +618,7 @@ class CallRecordingService : AccessibilityService() {
             .apply {
                 if (BuildConfig.DEBUG) {
                     setStyle(
-                        NotificationCompat.BigTextStyle().bigText(standbyNotificationContentText)
+                        BigTextStyle().bigText(standbyNotificationContentText)
                     )
                 }
             }
@@ -629,8 +628,6 @@ class CallRecordingService : AccessibilityService() {
             .setOnlyAlertOnce(true)
             .build()
             .let {
-                val notificationManager =
-                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.notify(RECORDING_NOTIFICATION_ID, it)
             }
     }

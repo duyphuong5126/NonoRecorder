@@ -52,5 +52,6 @@
     <string name="first_banner_ad_id">ca-app-pub-4399638162592093/5902006866</string>
     <string name="primary_rewarded_ad">ca-app-pub-4399638162592093/7259104964</string>
 
+    <string name="bluetooth_on_notification">Recording via bluetooth is not supported</string>
     <string name="recording_configs">Recording configs:\n- Sampling rate: %s kHz\n- Encoding bitrate: %s kbps\n- Audio channels: %s</string>
 </resources>

@@ -1,7 +1,12 @@
 package com.nonoka.nonorecorder.shared
 
+import android.app.NotificationManager
 import android.content.ContentValues
 import android.content.Context
+import android.content.Context.AUDIO_SERVICE
+import android.content.Context.NOTIFICATION_SERVICE
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.Q
 import android.os.Build.VERSION_CODES.S
@@ -16,6 +21,18 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.OutputStream
 import timber.log.Timber
+
+val Context.notificationManager: NotificationManager get() = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+val Context.audioManager: AudioManager get() = getSystemService(AUDIO_SERVICE) as AudioManager
+
+val Context.isBluetoothConnected: Boolean
+    get() {
+        val isBluetoothConnected = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            .any { info -> info.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO || info.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP }
+        Timber.d("Recording>>> isBluetoothConnected=$isBluetoothConnected")
+        return isBluetoothConnected
+    }
 
 @Throws(Throwable::class)
 fun Context.createSharedAudioFile(mp3File: File) {
